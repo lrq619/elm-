@@ -33,6 +33,7 @@ update msg model =
 
         Noop ->
             (model,Cmd.none)
+
 addTotalTime : Float -> Model -> Model
 addTotalTime elapsed model =
     { model | passedTime = model.passedTime + elapsed }
