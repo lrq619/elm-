@@ -40,13 +40,13 @@ subscriptions model =
 
 
 key : Bool -> Int -> SysMsg
-key on keycode =
-    case keycode of
+key on keyCode =
+    case keyCode of
         37 ->
-            MoveLeft
+            MoveLeft on
 
         39 ->
-            MoveRight
+            MoveRight on
 
         _ ->
             Noop

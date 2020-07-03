@@ -1,6 +1,8 @@
 module Update exposing (..)
 import Animation exposing (doAnimation, genAnimation, receiveAniMsg)
 import BasicFunctions exposing (getValue, replace)
+import GameObject exposing (GameObject)
+import Geometry exposing (doTranslation, receiveGeoMsg)
 import Model exposing (..)
 import Msg exposing (..)
 import Platform.Cmd exposing (..)
@@ -15,11 +17,13 @@ update msg model =
         Resize width height->
             ( { model | screen = (toFloat width, toFloat height) },Cmd.none)
 
-        MoveRight ->
-            (model,Cmd.none)
+        MoveRight on->
+            ({ model | moveRight=on }
+            ,Cmd.none)
 
-        MoveLeft ->
-            (model,Cmd.none)
+        MoveLeft on->
+            ({ model | moveLeft=on }
+            ,Cmd.none)
 
         Tick elapsed->
             (model
@@ -37,18 +41,36 @@ gameDisplay : Float -> Model -> Model
 gameDisplay elapsed model =
     let
         gameobj = model.gameObj
+        geoMsg =
+            if model.moveLeft then
+                Just (genGeometryMsg 1 (-0.01,0) 0)
+            else
+                Nothing
+
         aniMsg =
             if model.passedTime >=100 && model.passedTime <= 200 then
-               Just (genAniMsg 3 AniStart False)
+               Just (genAniMsg 1 AniStart True)
             else
                 Nothing
 
         gameobj_ =
             gameobj
+                |> translate geoMsg elapsed
                 |> changeAction aniMsg
                 |> act aniMsg elapsed
     in
         { model | gameObj = gameobj_ }
+
+translate : Maybe GeometryMsg -> Float -> GameObject -> GameObject
+translate geoMsg elapsed gameObj =
+    let
+        geo = gameObj.geometry
+        geo_ =
+            geo
+                |> receiveGeoMsg geoMsg
+                |> doTranslation elapsed
+    in
+        { gameObj | geometry = geo_ }
 
 changeAction : Maybe AnimationMsg -> GameObject -> GameObject
 changeAction aniMsg gameObj =

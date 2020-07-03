@@ -1,29 +1,20 @@
 module Model exposing (..)
+import Animation exposing (genAnimation)
 import Basics exposing (..)
-import Animation exposing (..)
+import GameObject exposing (GameObject, genGameObj)
+import Geometry exposing (genGeometry)
 
 type alias Model =
     {picture : Image,
      screen : (Float,Float),
      background : Image,
      gameObj : GameObject,
-     passedTime : Float
-
+     passedTime : Float,
+     moveLeft : Bool,
+     moveRight : Bool
     }
 
-type alias GameObject =
-    {x : Float,
-     y : Float,
-     w : Float,
-     h : Float,
-     a : Float,
-     actIndex : Int,
-     actions : List Animation
-    }
 
-genGameObj : Float -> Float -> Float -> Float -> Float  -> List Animation -> GameObject
-genGameObj x y w h a animations=
-    GameObject x y w h a 1 animations
 
 tests : List String
 tests =
@@ -40,7 +31,13 @@ genModel =
         screen=(0,0)
         (wD,hD)=display
         picture=genImage "" 400 300 50 50 180
-        background=genImage "./static/note.png" (wD/2) (hD/2) wD (hD*10) 0
+        background=genImage "./static/boss_normal.png" (wD/2) (hD/2) wD (hD) 0
+        srcLib_w = [
+                    "./static/walking/1.png",
+                    "./static/walking/2.png",
+                    "./static/walking/3.png",
+                    "./static/walking/4.png"
+                    ]
         srcLib = [
                   "./static/light/252.png",
                   "./static/light/253.png",
@@ -61,14 +58,16 @@ genModel =
                       "./static/disappear/6.png",
                       "./static/disappear/7.png"
                         ]
+        walking = genAnimation srcLib_w 200
         magic = genAnimation srcLib 50
         reverse = genAnimation srcLib_r 200
         disappear = genAnimation srcLib_dis 100
-        animations = [magic,reverse,disappear]
+        animations = [walking,magic,reverse,disappear]
+        geo = genGeometry 400 300 10 10 0 1 (0,0) 0
         gameObj =
-            genGameObj 400 300 200 200 0 animations
+            genGameObj geo animations
     in
-    Model picture screen background gameObj 0
+    Model picture screen background gameObj 0 False False
 
 
 

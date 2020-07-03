@@ -1,5 +1,6 @@
 module View exposing (..)
 import Animation exposing (genAnimation)
+import GameObject exposing (GameObject)
 import Model exposing (..)
 import BasicFunctions exposing (..)
 import Html exposing (..)
@@ -40,14 +41,15 @@ render model=
 
     x = String.fromFloat ((wS - wD)/2)
     y = String.fromFloat ((hS - hD)/2)
+    x_ = String.fromFloat 100
+    y_ = String.fromFloat 100
     w = String.fromFloat wD
     h = String.fromFloat hD
-    picture=model.picture
     background=model.background
 
   in
   Svg.svg
-    [ --SvgAttr.viewBox (x ++ " " ++ y ++ " " ++ w ++ " " ++ h),
+    [ SvgAttr.viewBox ("350" ++ " " ++ "250" ++ " " ++ "100" ++ " " ++ "100"),
       Html.Attributes.style "position" "fixed",
       HtmlAttr.style "left" (x ++ "px"),
       HtmlAttr.style "top" (y ++ "px"),
@@ -65,11 +67,13 @@ render model=
 renderGameObj : GameObject -> Svg.Svg msg
 renderGameObj gameobj =
     let
-        x=gameobj.x
-        y=gameobj.y
-        w=gameobj.w
-        h=gameobj.h
-        a=gameobj.a
+        geo=gameobj.geometry
+        x=geo.x
+        y=geo.y
+        w=geo.w
+        h=geo.h
+        a=geo.a
+
         aniIndex = gameobj.actIndex
 
         ani = case getValue gameobj.actions aniIndex of
@@ -100,8 +104,8 @@ renderImage picture=
     in
     Svg.image
         (  SvgAttr.xlinkHref src
-        :: SvgAttr.width (w )
-        :: SvgAttr.height (h )
+        :: SvgAttr.width (w)
+        :: SvgAttr.height (h)
         :: SvgAttr.transform (renderTransform picture)
         :: SvgAttr.preserveAspectRatio "none"
         :: HtmlAttr.style "position" "fixed"

@@ -1,6 +1,6 @@
 module Animation exposing (..)
 import State exposing (AnimationState(..))
-import Msg exposing (AnimationMsg,AniCmd(..))
+import Msg exposing (AniCmd(..), AnimationMsg, genAnimationMsg)
 type alias Animation =
     {
         state : AnimationState,
@@ -22,8 +22,10 @@ receiveAniMsg msg ani =
             Just m ->
                 m
             Nothing ->
-                AnimationMsg 0 AniNone False
+                genAnimationMsg 0 AniNone False
+
         cmd = msg_.cmd
+
         state =
             case cmd of
                 AniStart ->

@@ -7,24 +7,26 @@ type SysMsg
     = Resize Int Int
     | GetViewport Viewport
     | Tick Float
-    | MoveLeft
-    | MoveRight
+    | MoveLeft Bool
+    | MoveRight Bool
     | Noop
 
 type alias GameMsg =
     {
-        movMsg : MoveMsg,
+        geoMsg : GeometryMsg,
         aniMsg : AnimationMsg
-
     }
 
-type alias MoveMsg =
+type alias GeometryMsg =
     {
         scale : Float,
-        velocity : Float,
-        dir : Float,
+        velocity : (Float,Float),
         rotSpeed : Float
     }
+
+genGeometryMsg : Float -> (Float,Float) -> Float -> GeometryMsg
+genGeometryMsg scale velocity rotSpeed =
+    GeometryMsg scale velocity rotSpeed
 
 type alias AnimationMsg =
     {
@@ -32,6 +34,10 @@ type alias AnimationMsg =
         cmd : AniCmd,
         loop : Bool
     }
+
+genAnimationMsg : Int -> AniCmd -> Bool -> AnimationMsg
+genAnimationMsg index cmd loop =
+    AnimationMsg index cmd loop
 
 type AniCmd
     = AniStart

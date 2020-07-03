@@ -5161,9 +5161,9 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$Model$Model = F5(
-	function (picture, screen, background, gameObj, passedTime) {
-		return {background: background, gameObj: gameObj, passedTime: passedTime, picture: picture, screen: screen};
+var $author$project$Model$Model = F7(
+	function (picture, screen, background, gameObj, passedTime, moveLeft, moveRight) {
+		return {background: background, gameObj: gameObj, moveLeft: moveLeft, moveRight: moveRight, passedTime: passedTime, picture: picture, screen: screen};
 	});
 var $author$project$Model$display = _Utils_Tuple2(800, 600);
 var $author$project$State$AniStopped = {$: 'AniStopped'};
@@ -5175,13 +5175,21 @@ var $author$project$Animation$genAnimation = F2(
 	function (srcLib, delta) {
 		return A6($author$project$Animation$Animation, $author$project$State$AniStopped, 1, srcLib, 0, delta, true);
 	});
-var $author$project$Model$GameObject = F7(
-	function (x, y, w, h, a, actIndex, actions) {
-		return {a: a, actIndex: actIndex, actions: actions, h: h, w: w, x: x, y: y};
+var $author$project$GameObject$GameObject = F3(
+	function (geometry, actIndex, actions) {
+		return {actIndex: actIndex, actions: actions, geometry: geometry};
 	});
-var $author$project$Model$genGameObj = F6(
-	function (x, y, w, h, a, animations) {
-		return A7($author$project$Model$GameObject, x, y, w, h, a, 1, animations);
+var $author$project$GameObject$genGameObj = F2(
+	function (geo, animations) {
+		return A3($author$project$GameObject$GameObject, geo, 1, animations);
+	});
+var $author$project$Geometry$Geometry = F8(
+	function (x, y, w, h, a, scale, v, av) {
+		return {a: a, av: av, h: h, scale: scale, v: v, w: w, x: x, y: y};
+	});
+var $author$project$Geometry$genGeometry = F8(
+	function (x, y, w, h, a, scale, v, av) {
+		return A8($author$project$Geometry$Geometry, x, y, w, h, a, scale, v, av);
 	});
 var $author$project$Model$Image = F6(
 	function (src, x, y, w, h, theta) {
@@ -5192,6 +5200,9 @@ var $author$project$Model$genImage = F6(
 		return A6($author$project$Model$Image, src, x, y, w, h, theta);
 	});
 var $author$project$Model$genModel = function () {
+	var srcLib_w = _List_fromArray(
+		['./static/walking/1.png', './static/walking/2.png', './static/walking/3.png', './static/walking/4.png']);
+	var walking = A2($author$project$Animation$genAnimation, srcLib_w, 200);
 	var srcLib_dis = _List_fromArray(
 		['./static/disappear/1.png', './static/disappear/2.png', './static/disappear/3.png', './static/disappear/4.png', './static/disappear/5.png', './static/disappear/6.png', './static/disappear/7.png']);
 	var srcLib = _List_fromArray(
@@ -5201,15 +5212,25 @@ var $author$project$Model$genModel = function () {
 	var reverse = A2($author$project$Animation$genAnimation, srcLib_r, 200);
 	var picture = A6($author$project$Model$genImage, '', 400, 300, 50, 50, 180);
 	var magic = A2($author$project$Animation$genAnimation, srcLib, 50);
+	var geo = A8(
+		$author$project$Geometry$genGeometry,
+		400,
+		300,
+		10,
+		10,
+		0,
+		1,
+		_Utils_Tuple2(0, 0),
+		0);
 	var disappear = A2($author$project$Animation$genAnimation, srcLib_dis, 100);
 	var animations = _List_fromArray(
-		[magic, reverse, disappear]);
-	var gameObj = A6($author$project$Model$genGameObj, 400, 300, 200, 200, 0, animations);
+		[walking, magic, reverse, disappear]);
+	var gameObj = A2($author$project$GameObject$genGameObj, geo, animations);
 	var _v0 = $author$project$Model$display;
 	var wD = _v0.a;
 	var hD = _v0.b;
-	var background = A6($author$project$Model$genImage, './static/note.png', wD / 2, hD / 2, wD, hD * 10, 0);
-	return A5($author$project$Model$Model, picture, screen, background, gameObj, 0);
+	var background = A6($author$project$Model$genImage, './static/boss_normal.png', wD / 2, hD / 2, wD, hD, 0);
+	return A7($author$project$Model$Model, picture, screen, background, gameObj, 0, false, false);
 }();
 var $elm$browser$Browser$Dom$getViewport = _Browser_withWindow(_Browser_getViewport);
 var $author$project$Msg$Resize = F2(
@@ -5220,16 +5241,20 @@ var $author$project$Msg$Tick = function (a) {
 	return {$: 'Tick', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $author$project$Msg$MoveLeft = {$: 'MoveLeft'};
-var $author$project$Msg$MoveRight = {$: 'MoveRight'};
+var $author$project$Msg$MoveLeft = function (a) {
+	return {$: 'MoveLeft', a: a};
+};
+var $author$project$Msg$MoveRight = function (a) {
+	return {$: 'MoveRight', a: a};
+};
 var $author$project$Msg$Noop = {$: 'Noop'};
 var $author$project$Main$key = F2(
-	function (on, keycode) {
-		switch (keycode) {
+	function (on, keyCode) {
+		switch (keyCode) {
 			case 37:
-				return $author$project$Msg$MoveLeft;
+				return $author$project$Msg$MoveLeft(on);
 			case 39:
-				return $author$project$Msg$MoveRight;
+				return $author$project$Msg$MoveRight(on);
 			default:
 				return $author$project$Msg$Noop;
 		}
@@ -5907,6 +5932,10 @@ var $author$project$Msg$AnimationMsg = F3(
 	function (index, cmd, loop) {
 		return {cmd: cmd, index: index, loop: loop};
 	});
+var $author$project$Msg$genAnimationMsg = F3(
+	function (index, cmd, loop) {
+		return A3($author$project$Msg$AnimationMsg, index, cmd, loop);
+	});
 var $author$project$Animation$receiveAniMsg = F2(
 	function (msg, ani) {
 		var msg_ = function () {
@@ -5914,7 +5943,7 @@ var $author$project$Animation$receiveAniMsg = F2(
 				var m = msg.a;
 				return m;
 			} else {
-				return A3($author$project$Msg$AnimationMsg, 0, $author$project$Msg$AniNone, false);
+				return A3($author$project$Msg$genAnimationMsg, 0, $author$project$Msg$AniNone, false);
 			}
 		}();
 		var loop = msg_.loop;
@@ -6132,16 +6161,93 @@ var $author$project$Msg$genAniMsg = F3(
 	function (index, cmd, loop) {
 		return A3($author$project$Msg$AnimationMsg, index, cmd, loop);
 	});
+var $author$project$Msg$GeometryMsg = F3(
+	function (scale, velocity, rotSpeed) {
+		return {rotSpeed: rotSpeed, scale: scale, velocity: velocity};
+	});
+var $author$project$Msg$genGeometryMsg = F3(
+	function (scale, velocity, rotSpeed) {
+		return A3($author$project$Msg$GeometryMsg, scale, velocity, rotSpeed);
+	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $author$project$Geometry$doTranslation = F2(
+	function (elapsed, geo) {
+		var a_ = geo.a + geo.av;
+		var _v0 = geo.v;
+		var vx = _v0.a;
+		var vy = _v0.b;
+		var _v1 = _Utils_Tuple2(geo.x + (vx * elapsed), geo.y + (vy * elapsed));
+		var x_ = _v1.a;
+		var y_ = _v1.b;
+		var _v2 = _Utils_Tuple2(geo.w * geo.scale, geo.h * geo.scale);
+		var w_ = _v2.a;
+		var h_ = _v2.b;
+		return _Utils_update(
+			geo,
+			{a: a_, h: h_, w: w_, x: x_, y: y_});
+	});
+var $author$project$Geometry$receiveGeoMsg = F2(
+	function (msg, geo) {
+		var msg_ = function () {
+			if (msg.$ === 'Just') {
+				var m = msg.a;
+				return m;
+			} else {
+				return A3(
+					$author$project$Msg$genGeometryMsg,
+					0,
+					_Utils_Tuple2(0, 0),
+					0);
+			}
+		}();
+		var scale = msg_.scale;
+		var v = msg_.velocity;
+		var av = msg_.rotSpeed;
+		if (msg.$ === 'Just') {
+			var m = msg.a;
+			return _Utils_update(
+				geo,
+				{av: av, scale: scale, v: v});
+		} else {
+			return _Utils_update(
+				geo,
+				{
+					v: _Utils_Tuple2(0, 0)
+				});
+		}
+	});
+var $author$project$Update$translate = F3(
+	function (geoMsg, elapsed, gameObj) {
+		var geo = gameObj.geometry;
+		var geo_ = A2(
+			$author$project$Geometry$doTranslation,
+			elapsed,
+			A2($author$project$Geometry$receiveGeoMsg, geoMsg, geo));
+		return _Utils_update(
+			gameObj,
+			{geometry: geo_});
+	});
 var $author$project$Update$gameDisplay = F2(
 	function (elapsed, model) {
+		var geoMsg = model.moveLeft ? $elm$core$Maybe$Just(
+			A3(
+				$author$project$Msg$genGeometryMsg,
+				1,
+				_Utils_Tuple2(-0.01, 0),
+				0)) : $elm$core$Maybe$Nothing;
 		var gameobj = model.gameObj;
 		var aniMsg = ((model.passedTime >= 100) && (model.passedTime <= 200)) ? $elm$core$Maybe$Just(
-			A3($author$project$Msg$genAniMsg, 3, $author$project$Msg$AniStart, false)) : $elm$core$Maybe$Nothing;
+			A3($author$project$Msg$genAniMsg, 1, $author$project$Msg$AniStart, true)) : $elm$core$Maybe$Nothing;
 		var gameobj_ = A3(
 			$author$project$Update$act,
 			aniMsg,
 			elapsed,
-			A2($author$project$Update$changeAction, aniMsg, gameobj));
+			A2(
+				$author$project$Update$changeAction,
+				aniMsg,
+				A3($author$project$Update$translate, geoMsg, elapsed, gameobj)));
 		return _Utils_update(
 			model,
 			{gameObj: gameobj_});
@@ -6175,9 +6281,19 @@ var $author$project$Update$update = F2(
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'MoveRight':
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				var on = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{moveRight: on}),
+					$elm$core$Platform$Cmd$none);
 			case 'MoveLeft':
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				var on = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{moveLeft: on}),
+					$elm$core$Platform$Cmd$none);
 			case 'Tick':
 				var elapsed = msg.a;
 				return _Utils_Tuple2(
@@ -6199,9 +6315,6 @@ var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$image = $elm$svg$Svg$trustedNode('image');
 var $elm$svg$Svg$Attributes$preserveAspectRatio = _VirtualDom_attribute('preserveAspectRatio');
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var $author$project$View$renderTransform = function (picture) {
 	var y = $elm$core$String$fromFloat(picture.y);
 	var x = $elm$core$String$fromFloat(picture.x);
@@ -6248,10 +6361,11 @@ var $author$project$View$renderImage = function (picture) {
 		_List_Nil);
 };
 var $author$project$View$renderGameObj = function (gameobj) {
-	var y = gameobj.y;
-	var x = gameobj.x;
-	var w = gameobj.w;
-	var h = gameobj.h;
+	var geo = gameobj.geometry;
+	var h = geo.h;
+	var w = geo.w;
+	var x = geo.x;
+	var y = geo.y;
 	var aniIndex = gameobj.actIndex;
 	var ani = function () {
 		var _v1 = A2($author$project$BasicFunctions$getValue, gameobj.actions, aniIndex);
@@ -6271,13 +6385,15 @@ var $author$project$View$renderGameObj = function (gameobj) {
 			return '';
 		}
 	}();
-	var a = gameobj.a;
+	var a = geo.a;
 	var img = A6($author$project$Model$genImage, src, x, y, w, h, a);
 	return $author$project$View$renderImage(img);
 };
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
+var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $author$project$View$render = function (model) {
-	var picture = model.picture;
+	var y_ = $elm$core$String$fromFloat(100);
+	var x_ = $elm$core$String$fromFloat(100);
 	var background = model.background;
 	var _v0 = model.screen;
 	var wS = _v0.a;
@@ -6293,6 +6409,7 @@ var $author$project$View$render = function (model) {
 		$elm$svg$Svg$svg,
 		_List_fromArray(
 			[
+				$elm$svg$Svg$Attributes$viewBox('350' + (' ' + ('250' + (' ' + ('100' + (' ' + '100')))))),
 				A2($elm$html$Html$Attributes$style, 'position', 'fixed'),
 				A2($elm$html$Html$Attributes$style, 'left', x + 'px'),
 				A2($elm$html$Html$Attributes$style, 'top', y + 'px'),
