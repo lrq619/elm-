@@ -4,7 +4,7 @@ Event->Messages-> (Move, Animation)
 （这些不都是实际中代码实现的类，只是一个流程图）
 Event可以是玩家的键盘鼠标输入，也可以是游戏中的event，比如发生了碰撞。
 Messages需要包含所有改变Action必要的信息。比如说要改变哪一个物体。
-Action则包含Move和Animation两部分，这两部分分别是干啥的将在下文详细说明。
+Action则包含Geometry和Animation两部分，这两部分分别是干啥的将在下文详细说明。
 游戏所有的动画展示都放在Update.elm的gameDisplay下面。
 其完整流程如下：
 1.	检测Event是否发生。
@@ -15,8 +15,8 @@ Action则包含Move和Animation两部分，这两部分分别是干啥的将在�
 
 该框架中最基本的类是GameObject
 它由两部分构成
-一部分是它的几何判定区域，包括长宽，中心坐标，还有旋转角度（一般来说我们用矩形尤其是正方形来作为几何判定区域的形状）
+一部分是它的几何判定区域(Geometry)，包括长宽，中心坐标，还有旋转角度（一般来说我们用矩形尤其是正方形来作为几何判定区域的形状）
 另一部分是其贴图的变换。贴图的变换被称作Action，Action是Animation类的，比如一个人物“向左走”就是一个Action，是一个Animation类的变量。
 Animation（动画）类包含一个srcLib，即图形库（完成该动画所需要的所有贴图），srcLib的类型是一个List String（字符串列表）用来存放所有图形的路径。有一个loop的布尔值，用处是用于判断以何种方式播放动画（loop==true，就循环播放，不然就只播放一次）（loop与否的信息需要被包含在Messages里面）
 
-目前我只写好了关于Animation部分的函数，即改变贴图部分的函数，接下来要做的是写改变几何判定区域的函数，结构与上述是类似的，也是通过Event->Messages->Move这样来实现。
+目前Geometry与Animation都已经实现。
