@@ -47,3 +47,19 @@ type AniCmd
 genAniMsg : Int -> AniCmd -> Bool -> AnimationMsg
 genAniMsg index cmd loop =
      AnimationMsg index cmd loop
+
+type alias SoundMsg =
+     {
+         index:Int,
+         cmd:SoundCmd,
+         loop:Bool
+     }
+
+type SoundCmd
+    = SoundStart
+    | SoundStop
+    | SoundNone
+
+genSoundMsg: Int -> SoundCmd -> Bool ->SoundMsg
+genSoundMsg index cmd loop =
+     SoundMsg index cmd loop

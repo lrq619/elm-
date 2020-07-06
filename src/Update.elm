@@ -1,5 +1,6 @@
 module Update exposing (..)
 import Animation exposing (doAnimation, genAnimation, receiveAniMsg)
+import Sound exposing (..)
 import BasicFunctions exposing (getValue, replace)
 import GameObject exposing (GameObject)
 import Geometry exposing (doTranslation, receiveGeoMsg)
@@ -7,6 +8,7 @@ import Model exposing (..)
 import Msg exposing (..)
 import Platform.Cmd exposing (..)
 import Basics exposing (..)
+import State exposing (AnimationState(..), SoundState(..))
 
 update : SysMsg -> Model -> (Model,Cmd msg)
 update msg model =
@@ -29,6 +31,7 @@ update msg model =
             (model
                 |> addTotalTime (min elapsed 25)
                 |> gameDisplay (min elapsed 25)
+                |> soundDisplay (min elapsed 25)
             ,Cmd.none)
 
         Noop ->
@@ -48,10 +51,13 @@ gameDisplay elapsed model =
                 Nothing
 
         aniMsg =
-            if model.passedTime >=100 && model.passedTime <= 200 then
-               Just (genAniMsg 1 AniStart True)
+            if model.moveLeft then
+               Just (genAniMsg 2 AniStart False)
+            else if model.moveRight then
+               Just(genAniMsg 3 AniStart False)
             else
                 Nothing
+
 
         gameobj_ =
             gameobj
@@ -93,7 +99,68 @@ act aniMsg elapsed gameObj =
                 |> receiveAniMsg aniMsg
                 |> doAnimation elapsed
         actions_ = replace gameObj.actions gameObj.actIndex ani_
-
+        index_ =
+            if ani_.state == AniStopped then
+                1
+            else
+                gameObj.actIndex
     in
-        { gameObj | actions = actions_ }
+        { gameObj | actions = actions_,actIndex=index_ }
+
+
+
+
+
+soundDisplay:  Float -> Model -> Model
+soundDisplay elapsed model =
+     let
+        soundMsg =
+            if model.moveLeft then    -- this line will be changed after event index is added
+               Just (genSoundMsg 2 SoundStart True)
+            else
+                Nothing
+
+        model_=
+                model
+                |> changeSound soundMsg
+                |> playSounds soundMsg elapsed
+    in
+        {model | soundIndex = model_.soundIndex,sounds = model_.sounds}
+--wait to be solved
+
+
+changeSound : Maybe SoundMsg -> Model -> Model
+changeSound soundMsg  model =
+    case soundMsg of
+        Just msg ->
+            { model | soundIndex = msg.index }
+        Nothing ->
+            model
+
+playSounds : Maybe SoundMsg -> Float -> Model -> Model
+playSounds soundMsg elapsed model =
+    let
+        sound = case (getValue model.sounds model.soundIndex) of
+               Just a ->
+                  a
+               Nothing ->
+                   genSound "" 0
+
+        sound_ =
+            sound
+                |> receiveSoundMsg soundMsg
+                |> doSound elapsed
+
+        sounds_ = replace model.sounds model.soundIndex sound_
+        index_ =
+            if sound_.state == SoundStopped then
+                1
+            else
+                model.soundIndex
+    in
+         {model | sounds = sounds_,soundIndex = index_}
+
+
+
+
 

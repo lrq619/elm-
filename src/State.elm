@@ -7,3 +7,7 @@ type GameState
 type AnimationState
     = AniStopped
     | AniPlaying
+
+type SoundState
+    =SoundStopped
+    | SoundPlaying

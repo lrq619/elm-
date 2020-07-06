@@ -1,5 +1,4 @@
 module GameObject exposing (..)
-
 import Animation exposing (Animation)
 import Geometry exposing (Geometry)
 

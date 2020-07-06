@@ -1,10 +1,11 @@
 module View exposing (..)
 import Animation exposing (genAnimation)
+import Sound exposing (genSound)
 import GameObject exposing (GameObject)
 import Model exposing (..)
 import BasicFunctions exposing (..)
 import Html exposing (..)
-import Html.Attributes as HtmlAttr
+import Html.Attributes as HtmlAttr exposing (autoplay, controls, loop, src)
 import Svg exposing (..)
 import Svg.Attributes as SvgAttr
 import Html.Attributes
@@ -28,6 +29,7 @@ view model =
         ]
         [
             render model,
+            rendersound model,
             renderInfo model
         ]
 
@@ -148,21 +150,22 @@ renderInfo model =
         , HtmlAttr.style "line-height" "1.5"
         , HtmlAttr.style "padding" "0 15px"
         , HtmlAttr.style "position" "absolute"
-
-
-
         ]
         [
         Html.text info
         ]
 
-
-
-
-
-
-
-
-
-
-
+rendersound : Model -> Html msg
+rendersound model =
+    let
+        sound = case ( getValue model.sounds model.soundIndex) of
+            Just a ->
+                a
+            Nothing ->
+                genSound "" 0
+        src = sound.srcLib
+    in
+      audio [
+      HtmlAttr.src src,
+      HtmlAttr.autoplay True
+      ] [Html.text "You browser does not support audio"]
