@@ -5163,7 +5163,7 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Model$Model = function (screen) {
 	return function (background) {
-		return function (gameObj) {
+		return function (hero) {
 			return function (passedTime) {
 				return function (moveLeft) {
 					return function (moveRight) {
@@ -5171,7 +5171,9 @@ var $author$project$Model$Model = function (screen) {
 							return function (moveDown) {
 								return function (soundIndex) {
 									return function (sounds) {
-										return {background: background, gameObj: gameObj, moveDown: moveDown, moveLeft: moveLeft, moveRight: moveRight, moveUp: moveUp, passedTime: passedTime, screen: screen, soundIndex: soundIndex, sounds: sounds};
+										return function (map) {
+											return {background: background, hero: hero, map: map, moveDown: moveDown, moveLeft: moveLeft, moveRight: moveRight, moveUp: moveUp, passedTime: passedTime, screen: screen, soundIndex: soundIndex, sounds: sounds};
+										};
 									};
 								};
 							};
@@ -5182,6 +5184,7 @@ var $author$project$Model$Model = function (screen) {
 		};
 	};
 };
+var $author$project$BasicFunctions$backgroundSize = 2400;
 var $author$project$State$AniStopped = {$: 'AniStopped'};
 var $author$project$Animation$Animation = F6(
 	function (state, stage, srcLib, passedTime, delta, loop) {
@@ -5191,14 +5194,22 @@ var $author$project$Animation$genAnimation = F2(
 	function (srcLib, delta) {
 		return A6($author$project$Animation$Animation, $author$project$State$AniStopped, 1, srcLib, 0, delta, true);
 	});
-var $author$project$GameObject$GameObject = F6(
-	function (geometry, actIndex, actions, state, passedTime, length) {
-		return {actIndex: actIndex, actions: actions, geometry: geometry, length: length, passedTime: passedTime, state: state};
+var $author$project$GameObject$GameObject = F7(
+	function (geometry, actIndex, actions, state, passedTime, length, pos) {
+		return {actIndex: actIndex, actions: actions, geometry: geometry, length: length, passedTime: passedTime, pos: pos, state: state};
 	});
 var $author$project$GameObject$ObjStopped = {$: 'ObjStopped'};
 var $author$project$GameObject$genGameObj = F2(
 	function (geo, animations) {
-		return A6($author$project$GameObject$GameObject, geo, 1, animations, $author$project$GameObject$ObjStopped, 0, 0);
+		return A7(
+			$author$project$GameObject$GameObject,
+			geo,
+			1,
+			animations,
+			$author$project$GameObject$ObjStopped,
+			0,
+			0,
+			_Utils_Tuple2(0, 0));
 	});
 var $author$project$State$GeoStopped = {$: 'GeoStopped'};
 var $author$project$Geometry$Geometry = F8(
@@ -5217,6 +5228,17 @@ var $author$project$Model$genImage = F5(
 	function (src, x, y, w, h) {
 		return A6($author$project$Model$Image, src, x, y, w, h, 0);
 	});
+var $author$project$Map$barriers = _List_fromArray(
+	[
+		_Utils_Tuple2(1, 0)
+	]);
+var $author$project$Map$Map = function (barriers) {
+	return {barriers: barriers};
+};
+var $author$project$Map$setBarrier = function (lst) {
+	return $author$project$Map$Map(lst);
+};
+var $author$project$Map$genMap = $author$project$Map$setBarrier($author$project$Map$barriers);
 var $author$project$Sound$Sound = F5(
 	function (state, srcLib, length, loop, passedTime) {
 		return {length: length, loop: loop, passedTime: passedTime, srcLib: srcLib, state: state};
@@ -5226,7 +5248,34 @@ var $author$project$Sound$genSound = F2(
 	function (srcLib, length) {
 		return A5($author$project$Sound$Sound, $author$project$State$SoundStopped, srcLib, length, false, 0);
 	});
+var $author$project$BasicFunctions$unitAmount = 100;
+var $author$project$BasicFunctions$unitSize = $author$project$BasicFunctions$backgroundSize / $author$project$BasicFunctions$unitAmount;
+var $author$project$BasicFunctions$posToRealPos = function (_v0) {
+	var xP = _v0.a;
+	var yP = _v0.b;
+	return _Utils_Tuple2(xP * $author$project$BasicFunctions$unitSize, yP * $author$project$BasicFunctions$unitSize);
+};
+var $author$project$GameObject$locate = F2(
+	function (_v0, gameObj) {
+		var xP = _v0.a;
+		var yP = _v0.b;
+		var geo = gameObj.geometry;
+		var _v1 = $author$project$BasicFunctions$posToRealPos(
+			_Utils_Tuple2(xP, yP));
+		var x = _v1.a;
+		var y = _v1.b;
+		var geo_ = _Utils_update(
+			geo,
+			{x: x, y: y});
+		return _Utils_update(
+			gameObj,
+			{
+				geometry: geo_,
+				pos: _Utils_Tuple2(xP, yP)
+			});
+	});
 var $author$project$Model$genModel = function () {
+	var startPoint = _Utils_Tuple2(3, 10);
 	var srcLib_w_U = _List_fromArray(
 		['./static/character/walking/13.png', './static/character/walking/14.png', './static/character/walking/15.png', './static/character/walking/16.png']);
 	var walking_Up = A2($author$project$Animation$genAnimation, srcLib_w_U, 200);
@@ -5250,21 +5299,27 @@ var $author$project$Model$genModel = function () {
 		_List_fromArray(
 			['./static/character/normal/1.png']),
 		10000);
-	var geo = A5(
-		$author$project$Geometry$genGeometry,
-		0,
-		0,
-		10,
-		10,
-		_Utils_Tuple2(0, 0));
 	var animations = _List_fromArray(
 		[normal, walking_Left, walking_Right, walking_Up, walking_Down]);
-	var gameObj = A2($author$project$GameObject$genGameObj, geo, animations);
-	var _v0 = _Utils_Tuple2(2400, 2400);
-	var wD = _v0.a;
-	var hD = _v0.b;
-	var background = A5($author$project$Model$genImage, './static/Map004.png', wD / 2, hD / 2, wD, hD);
-	return $author$project$Model$Model(screen)(background)(gameObj)(0)(false)(false)(false)(false)(1)(sounds);
+	var _v0 = $author$project$BasicFunctions$posToRealPos(startPoint);
+	var x = _v0.a;
+	var y = _v0.b;
+	var geo = A5(
+		$author$project$Geometry$genGeometry,
+		x,
+		y,
+		$author$project$BasicFunctions$unitSize,
+		$author$project$BasicFunctions$unitSize,
+		_Utils_Tuple2(0, 0));
+	var hero = A2(
+		$author$project$GameObject$locate,
+		startPoint,
+		A2($author$project$GameObject$genGameObj, geo, animations));
+	var _v1 = _Utils_Tuple2($author$project$BasicFunctions$backgroundSize, $author$project$BasicFunctions$backgroundSize);
+	var wD = _v1.a;
+	var hD = _v1.b;
+	var background = A5($author$project$Model$genImage, './static/Map005.png', 0, 0, wD, hD);
+	return $author$project$Model$Model(screen)(background)(hero)(0)(false)(false)(false)(false)(1)(sounds)($author$project$Map$genMap);
 }();
 var $elm$browser$Browser$Dom$getViewport = _Browser_withWindow(_Browser_getViewport);
 var $author$project$Msg$Resize = F2(
@@ -6051,6 +6106,51 @@ var $author$project$GameObject$changeNormal = F3(
 			obj,
 			{actions: actions}) : obj;
 	});
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var $author$project$GameObject$checkBarrier = F3(
+	function (map, gameObj, _v0) {
+		var vX = _v0.a;
+		var vY = _v0.b;
+		var _v1 = gameObj.pos;
+		var x = _v1.a;
+		var y = _v1.b;
+		var _v2 = _Utils_Tuple2(x + vX, y + vY);
+		var x_ = _v2.a;
+		var y_ = _v2.b;
+		return A2(
+			$elm$core$List$member,
+			_Utils_Tuple2(x_, y_),
+			map.barriers);
+	});
 var $author$project$Animation$addTime = F2(
 	function (elapsed, ani) {
 		var t = ani.passedTime + elapsed;
@@ -6209,12 +6309,25 @@ var $author$project$Update$changeAction = F2(
 			gameObj,
 			{actIndex: aniMsg.index});
 	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
 var $author$project$GameObject$returnObjZero = function (obj) {
-	var _v0 = (_Utils_cmp(obj.passedTime, obj.length) < 1) ? _Utils_Tuple2(obj.passedTime, obj.state) : _Utils_Tuple2(0, $author$project$GameObject$ObjStopped);
-	var passedTime = _v0.a;
-	var state = _v0.b;
-	return _Utils_update(
-		obj,
+	var _v0 = obj.pos;
+	var x = _v0.a;
+	var y = _v0.b;
+	var _v1 = obj.geometry.v;
+	var vX = _v1.a;
+	var vY = _v1.b;
+	var x_ = (vX > 0) ? 1 : ((vX < 0) ? (-1) : 0);
+	var y_ = (vY > 0) ? 1 : ((vY < 0) ? (-1) : 0);
+	var pos_ = _Utils_Tuple2(x + x_, y + y_);
+	var obj_ = A2($author$project$GameObject$locate, pos_, obj);
+	var _v2 = _Utils_Tuple2(0, $author$project$GameObject$ObjStopped);
+	var passedTime = _v2.a;
+	var state = _v2.b;
+	return (_Utils_cmp(obj.passedTime, obj.length) < 1) ? obj : _Utils_update(
+		obj_,
 		{passedTime: passedTime, state: state});
 };
 var $author$project$Geometry$addTime = F2(
@@ -6336,10 +6449,8 @@ var $author$project$Msg$genGeometryMsg = F3(
 	function (velocity, length, cmd) {
 		return A3($author$project$Msg$GeometryMsg, velocity, length, cmd);
 	});
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var $elm$core$Basics$neq = _Utils_notEqual;
+var $elm$core$Basics$not = _Basics_not;
 var $author$project$GameObject$ObjPlaying = {$: 'ObjPlaying'};
 var $author$project$Update$receiveObjMsg = F2(
 	function (msg, gameObj) {
@@ -6360,8 +6471,9 @@ var $author$project$Update$receiveObjMsg = F2(
 	});
 var $author$project$Update$gameDisplay = F2(
 	function (elapsed, model) {
-		var gameObj = model.gameObj;
-		var objMsg = (!_Utils_eq(gameObj.state, $author$project$GameObject$ObjStopped)) ? A3(
+		var map = model.map;
+		var hero = model.hero;
+		var objMsg = (!_Utils_eq(hero.state, $author$project$GameObject$ObjStopped)) ? A3(
 			$author$project$Msg$genGameObjMsg,
 			A3(
 				$author$project$Msg$genGeometryMsg,
@@ -6369,35 +6481,51 @@ var $author$project$Update$gameDisplay = F2(
 				0,
 				$author$project$Msg$GeoNone),
 			A3($author$project$Msg$genAniMsg, 0, $author$project$Msg$AniNone, false),
-			$author$project$Msg$ObjNone) : (model.moveLeft ? A3(
+			$author$project$Msg$ObjNone) : ((model.moveLeft && (!A3(
+			$author$project$GameObject$checkBarrier,
+			map,
+			hero,
+			_Utils_Tuple2(-1, 0)))) ? A3(
 			$author$project$Msg$genGameObjMsg,
 			A3(
 				$author$project$Msg$genGeometryMsg,
-				_Utils_Tuple2(-0.01, 0),
+				_Utils_Tuple2(-0.03, 0),
 				800,
 				$author$project$Msg$GeoStart),
 			A3($author$project$Msg$genAniMsg, 2, $author$project$Msg$AniStart, false),
-			$author$project$Msg$ObjStart) : (model.moveRight ? A3(
+			$author$project$Msg$ObjStart) : ((model.moveRight && (!A3(
+			$author$project$GameObject$checkBarrier,
+			map,
+			hero,
+			_Utils_Tuple2(1, 0)))) ? A3(
 			$author$project$Msg$genGameObjMsg,
 			A3(
 				$author$project$Msg$genGeometryMsg,
-				_Utils_Tuple2(0.01, 0),
+				_Utils_Tuple2(0.03, 0),
 				800,
 				$author$project$Msg$GeoStart),
 			A3($author$project$Msg$genAniMsg, 3, $author$project$Msg$AniStart, false),
-			$author$project$Msg$ObjStart) : (model.moveUp ? A3(
+			$author$project$Msg$ObjStart) : ((model.moveUp && (!A3(
+			$author$project$GameObject$checkBarrier,
+			map,
+			hero,
+			_Utils_Tuple2(0, -1)))) ? A3(
 			$author$project$Msg$genGameObjMsg,
 			A3(
 				$author$project$Msg$genGeometryMsg,
-				_Utils_Tuple2(0, -0.01),
+				_Utils_Tuple2(0, -0.03),
 				800,
 				$author$project$Msg$GeoStart),
 			A3($author$project$Msg$genAniMsg, 4, $author$project$Msg$AniStart, false),
-			$author$project$Msg$ObjStart) : (model.moveDown ? A3(
+			$author$project$Msg$ObjStart) : ((model.moveDown && (!A3(
+			$author$project$GameObject$checkBarrier,
+			map,
+			hero,
+			_Utils_Tuple2(0, 1)))) ? A3(
 			$author$project$Msg$genGameObjMsg,
 			A3(
 				$author$project$Msg$genGeometryMsg,
-				_Utils_Tuple2(0, 0.01),
+				_Utils_Tuple2(0, 0.03),
 				800,
 				$author$project$Msg$GeoStart),
 			A3($author$project$Msg$genAniMsg, 5, $author$project$Msg$AniStart, false),
@@ -6425,7 +6553,7 @@ var $author$project$Update$gameDisplay = F2(
 			true) : _Utils_Tuple2(_List_Nil, false))));
 		var normal = _v0.a;
 		var changeOrNot = _v0.b;
-		var gameObj_ = A3($author$project$GameObject$changeNormal, changeOrNot, normal, gameObj);
+		var gameObj_ = A3($author$project$GameObject$changeNormal, changeOrNot, normal, hero);
 		var gameObj__ = A3(
 			$author$project$Update$do,
 			elapsed,
@@ -6433,7 +6561,7 @@ var $author$project$Update$gameDisplay = F2(
 			A2($author$project$Update$receiveObjMsg, objMsg, gameObj_));
 		return _Utils_update(
 			model,
-			{gameObj: gameObj__});
+			{hero: gameObj__});
 	});
 var $elm$core$Basics$min = F2(
 	function (x, y) {
@@ -6604,7 +6732,7 @@ var $author$project$Update$update = F2(
 	});
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$core$String$fromFloat = _String_fromNumber;
-var $author$project$Model$display = _Utils_Tuple2(800, 600);
+var $author$project$BasicFunctions$display = _Utils_Tuple2(800, 600);
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$image = $elm$svg$Svg$trustedNode('image');
@@ -6613,7 +6741,7 @@ var $author$project$View$renderTransform = function (picture) {
 	var y = $elm$core$String$fromFloat(picture.y);
 	var x = $elm$core$String$fromFloat(picture.x);
 	var theta = $elm$core$String$fromFloat(picture.theta);
-	return 'translate(' + (x + (',' + (y + (') rotate(' + (theta + (')' + (' translate(' + ($elm$core$String$fromFloat((-picture.w) / 2) + (',' + ($elm$core$String$fromFloat((-picture.h) / 2) + ')'))))))))));
+	return 'translate(' + (x + (',' + (y + (') rotate(' + (theta + ')')))));
 };
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
@@ -6685,15 +6813,15 @@ var $author$project$View$renderGameObj = function (gameobj) {
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $author$project$View$render = function (model) {
-	var viewW = 100;
-	var viewX = model.gameObj.geometry.x - (viewW / 2);
-	var viewH = 100;
-	var viewY = model.gameObj.geometry.y - (viewH / 2);
+	var viewW = 200;
+	var viewX = model.hero.geometry.x - (viewW / 2);
+	var viewH = 200;
+	var viewY = model.hero.geometry.y - (viewH / 2);
 	var background = model.background;
 	var _v0 = model.screen;
 	var wS = _v0.a;
 	var hS = _v0.b;
-	var _v1 = $author$project$Model$display;
+	var _v1 = $author$project$BasicFunctions$display;
 	var wD = _v1.a;
 	var hD = _v1.b;
 	var h = $elm$core$String$fromFloat(hD);
@@ -6717,13 +6845,16 @@ var $author$project$View$render = function (model) {
 			$author$project$View$renderImage(background),
 			A2(
 				$elm$core$List$cons,
-				$author$project$View$renderGameObj(model.gameObj),
+				$author$project$View$renderGameObj(model.hero),
 				_List_Nil)));
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$View$renderInfo = function (model) {
-	var info = $elm$core$String$fromFloat(model.gameObj.geometry.y);
+	var _v0 = model.hero.pos;
+	var x = _v0.a;
+	var y = _v0.b;
+	var info = $elm$core$String$fromInt(x) + (',' + $elm$core$String$fromInt(y));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(

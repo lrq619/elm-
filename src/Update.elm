@@ -1,7 +1,7 @@
 module Update exposing (..)
 import Sound exposing (..)
 import BasicFunctions exposing (getValue, replace)
-import GameObject exposing (GameObject, GameObjectState(..), act, addObjTime, calLength, changeNormal, returnObjZero, translate)
+import GameObject exposing (GameObject, GameObjectState(..), act, addObjTime, calLength, changeNormal, checkBarrier, returnObjZero, translate)
 import Model exposing (..)
 import Msg exposing (..)
 import Platform.Cmd exposing (..)
@@ -47,32 +47,32 @@ addTotalTime elapsed model =
 gameDisplay : Float -> Model -> Model
 gameDisplay elapsed model =
     let
-        gameObj = model.gameObj
-
+        hero = model.hero
+        map = model.map
         objMsg =
-            if gameObj.state /= ObjStopped then
+            if hero.state /= ObjStopped then
                 genGameObjMsg
                 (genGeometryMsg (0,0) 0 GeoNone)
                 (genAniMsg 0 AniNone False)
                 ObjNone
-            else if model.moveLeft  then
+            else if model.moveLeft && not (checkBarrier map hero (-1,0)) then
                 genGameObjMsg
-                (genGeometryMsg (-0.01,0) 800 GeoStart)
+                (genGeometryMsg (-0.03,0) 800 GeoStart)
                 (genAniMsg 2 AniStart False)
                 ObjStart
-            else if model.moveRight then
+            else if model.moveRight && not (checkBarrier map hero (1,0)) then
                 genGameObjMsg
-                (genGeometryMsg (0.01,0) 800 GeoStart)
+                (genGeometryMsg (0.03,0) 800 GeoStart)
                 (genAniMsg 3 AniStart False)
                 ObjStart
-            else if model.moveUp then
+            else if model.moveUp && not (checkBarrier map hero (0,-1))then
                 genGameObjMsg
-                (genGeometryMsg (0,-0.01) 800 GeoStart)
+                (genGeometryMsg (0,-0.03) 800 GeoStart)
                 (genAniMsg 4 AniStart False)
                 ObjStart
-            else if model.moveDown then
+            else if model.moveDown&& not (checkBarrier map hero (0,1)) then
                 genGameObjMsg
-                (genGeometryMsg (0,0.01) 800 GeoStart)
+                (genGeometryMsg (0,0.03) 800 GeoStart)
                 (genAniMsg 5 AniStart False)
                 ObjStart
             else
@@ -92,13 +92,13 @@ gameDisplay elapsed model =
             else
                 ([],False)
         gameObj_ =
-            changeNormal changeOrNot normal gameObj
+            changeNormal changeOrNot normal hero
         gameObj__ =
                gameObj_
                     |> receiveObjMsg objMsg
                     |> do elapsed objMsg
     in
-        { model | gameObj = gameObj__ }
+        { model | hero = gameObj__ }
 
 receiveObjMsg : GameObjMsg ->  GameObject -> GameObject
 receiveObjMsg msg gameObj =

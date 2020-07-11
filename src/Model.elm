@@ -1,8 +1,10 @@
 module Model exposing (..)
 import Animation exposing (genAnimation)
+import BasicFunctions exposing (backgroundSize, posToRealPos, unitSize)
 import Basics exposing (..)
-import GameObject exposing (GameObject, genGameObj)
+import GameObject exposing (GameObject, genGameObj, locate)
 import Geometry exposing (genGeometry)
+import Map exposing (Map, genMap)
 import Sound exposing (..)
 
 
@@ -10,34 +12,30 @@ type alias Model =
     {
      screen : (Float,Float),
      background : Image,
-     gameObj : GameObject,
+     hero : GameObject,
      passedTime : Float,
      moveLeft : Bool,
      moveRight : Bool,
      moveUp : Bool,
      moveDown : Bool,
      soundIndex: Int,
-     sounds: List Sound
+     sounds: List Sound,
+     map : Map
     }
 
 
 
-tests : List String
-tests =
-    ["First","Second","Third"]
 
 
-display : (Float,Float)
-display =
-    (800,600)
+
 
 genModel : Model
 genModel =
     let
         screen=(0,0)
-        (wD,hD)=(2400,2400)
+        (wD,hD)=(backgroundSize,backgroundSize)
 
-        background=genImage "./static/Map004.png" (wD/2) (hD/2) wD (hD)
+        background=genImage "./static/Map005.png" 0 0 wD (hD)
         srcLib_w_L = [
                     "./static/character/walking/5.png",
                     "./static/character/walking/6.png",
@@ -72,13 +70,16 @@ genModel =
         sound_1 = genSound "./static/Sound/opengate.mp3" 2000
         sound_2 = genSound "./static/Sound/heartbeat-fast.mp3" 3000
         sounds = [sound_n,sound_1, sound_2]
-        geo = genGeometry 0 0 10 10 (0,0)
-        gameObj =
-            genGameObj geo animations
+        startPoint = (3,10)
+        (x,y) = posToRealPos startPoint
+        geo = genGeometry x y unitSize unitSize (0,0)
+        hero =
+            locate startPoint (genGameObj geo animations)
     in
-    Model screen background gameObj 0
+    Model screen background hero 0
     False False False False
     1 sounds
+    genMap
 
 
 
@@ -94,3 +95,7 @@ type alias Image =
 genImage : String -> Float -> Float -> Float -> Float -> Image
 genImage src x y w h =
     Image src x y w h 0
+
+
+
+

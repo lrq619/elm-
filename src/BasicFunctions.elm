@@ -31,6 +31,26 @@ replace lst  index value =
     in
         front ++ [value] ++ back
 
+backgroundSize : Float
+backgroundSize =
+    2400
+
+
+display : (Float,Float)
+display =
+    (800,600)
+
+unitAmount : Int
+unitAmount = 100
+
+unitSize : Float
+unitSize =
+    backgroundSize / toFloat unitAmount
+
+posToRealPos : (Int,Int) -> (Float,Float)
+posToRealPos (xP,yP) =
+    ((toFloat xP)*unitSize,(toFloat yP)*unitSize)
+
 
 
 

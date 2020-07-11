@@ -47,11 +47,11 @@ render model=
     h = String.fromFloat hD
     background=model.background
 
-    viewH = 100
-    viewW = 100
+    viewH = 200
+    viewW = 200
 
-    viewX = model.gameObj.geometry.x - viewW / 2
-    viewY = model.gameObj.geometry.y - viewH / 2
+    viewX = model.hero.geometry.x - viewW / 2
+    viewY = model.hero.geometry.y - viewH / 2
 
   in
   Svg.svg
@@ -68,7 +68,7 @@ render model=
 
      renderImage background
      --::renderImage picture
-     ::renderGameObj model.gameObj
+     ::renderGameObj model.hero
      ::[]
      )
 
@@ -130,13 +130,15 @@ renderTransform picture =
     in
 
     "translate(" ++  x ++ "," ++ y ++ ") rotate(" ++  theta ++ ")"
-    ++ " translate(" ++ String.fromFloat (-picture.w/2)  ++ "," ++ String.fromFloat (-picture.h/2) ++ ")"
+    --++ " translate(" ++ String.fromFloat (-picture.w/2)  ++ "," ++ String.fromFloat (-picture.h/2) ++ ")"
 
 renderInfo : Model -> Html msg
 renderInfo model =
     let
+        (x,y) = model.hero.pos
         info=
-            String.fromFloat model.gameObj.geometry.y
+            --String.fromFloat model.gameObj.geometry.x ++","++ String.fromFloat model.gameObj.geometry.y ++ "\n" ++
+            String.fromInt x ++ "," ++ String.fromInt y
 
     in
     div
