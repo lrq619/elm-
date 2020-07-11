@@ -1,12 +1,12 @@
 module Update exposing (..)
-import Animation exposing (doAnimation, genAnimation, receiveAniMsg)
+import Sound exposing (..)
 import BasicFunctions exposing (getValue, replace)
-import GameObject exposing (GameObject)
-import Geometry exposing (doTranslation, receiveGeoMsg)
+import GameObject exposing (GameObject, GameObjectState(..), act, addObjTime, calLength, returnObjZero, translate)
 import Model exposing (..)
 import Msg exposing (..)
 import Platform.Cmd exposing (..)
 import Basics exposing (..)
+import State exposing (AnimationState(..), SoundState(..))
 
 update : SysMsg -> Model -> (Model,Cmd msg)
 update msg model =
@@ -29,6 +29,7 @@ update msg model =
             (model
                 |> addTotalTime (min elapsed 25)
                 |> gameDisplay (min elapsed 25)
+                |> soundDisplay (min elapsed 25)
             ,Cmd.none)
 
         Noop ->
@@ -41,60 +42,128 @@ addTotalTime elapsed model =
 gameDisplay : Float -> Model -> Model
 gameDisplay elapsed model =
     let
-        gameobj = model.gameObj
-        geoMsg =
-            if model.moveLeft then
-                Just (genGeometryMsg 1 (-0.01,0) 0)
-            else
-                Nothing
+        gameObj = model.gameObj
 
-        aniMsg =
-            if model.passedTime >=100 && model.passedTime <= 200 then
-               Just (genAniMsg 1 AniStart True)
+        objMsg =
+            if gameObj.state /= ObjStopped then
+                genGameObjMsg
+                (genGeometryMsg (0,0) 0 GeoNone)
+                (genAniMsg 0 AniNone False)
+                ObjNone
+            else if model.moveLeft  then
+                genGameObjMsg
+                (genGeometryMsg (-0.01,0) 800 GeoStart)
+                (genAniMsg 2 AniStart False)
+                ObjStart
+            else if model.moveRight then
+                genGameObjMsg
+                (genGeometryMsg (0.01,0) 800 GeoStart)
+                (genAniMsg 3 AniStart False)
+                ObjStart
             else
-                Nothing
+                genGameObjMsg
+                (genGeometryMsg  (0,0) 0 GeoNone)
+                (genAniMsg 0 AniNone False)
+                ObjNone
 
-        gameobj_ =
-            gameobj
-                |> translate geoMsg elapsed
-                |> changeAction aniMsg
-                |> act aniMsg elapsed
+
+        gameObj_ =
+               gameObj
+                    |> receiveObjMsg objMsg
+                    |> do elapsed objMsg
     in
-        { model | gameObj = gameobj_ }
+        { model | gameObj = gameObj_ }
 
-translate : Maybe GeometryMsg -> Float -> GameObject -> GameObject
-translate geoMsg elapsed gameObj =
+receiveObjMsg : GameObjMsg ->  GameObject -> GameObject
+receiveObjMsg msg gameObj =
     let
-        geo = gameObj.geometry
-        geo_ =
-            geo
-                |> receiveGeoMsg geoMsg
-                |> doTranslation elapsed
+        state =
+            case msg.cmd of
+                ObjStart ->
+                    ObjPlaying
+                ObjStop ->
+                    ObjStopped
+                ObjNone ->
+                    gameObj.state
     in
-        { gameObj | geometry = geo_ }
+        { gameObj | state = state }
 
-changeAction : Maybe AnimationMsg -> GameObject -> GameObject
-changeAction aniMsg gameObj =
-    case aniMsg of
-        Just msg ->
-            { gameObj | actIndex = msg.index }
-        Nothing ->
+do : Float -> GameObjMsg -> GameObject -> GameObject
+do elapsed msg gameObj =
+    let
+        geoMsg = msg.geoMsg
+        aniMsg = msg.aniMsg
+
+    in
+    case gameObj.state of
+        ObjPlaying ->
+            gameObj
+                |> addObjTime elapsed
+                |> returnObjZero
+                |> changeAction aniMsg
+
+                |> calLength
+                |> translate geoMsg elapsed
+                |> act aniMsg elapsed
+        ObjStopped ->
             gameObj
 
-act : Maybe AnimationMsg -> Float -> GameObject -> GameObject
-act aniMsg elapsed gameObj =
-    let
-        ani = case (getValue gameObj.actions gameObj.actIndex) of
-                Just a ->
-                    a
-                Nothing ->
-                    genAnimation [] 1
-        ani_ =
-            ani
-                |> receiveAniMsg aniMsg
-                |> doAnimation elapsed
-        actions_ = replace gameObj.actions gameObj.actIndex ani_
+changeAction : AnimationMsg -> GameObject -> GameObject
+changeAction aniMsg gameObj =
+    if aniMsg.cmd == AniNone then
+        gameObj
+    else
+        { gameObj | actIndex = aniMsg.index }
 
+soundDisplay:  Float -> Model -> Model
+soundDisplay elapsed model =
+     let
+        soundMsg =
+            if model.moveLeft then    -- this line will be changed after event index is added
+               genSoundMsg 2 SoundStart True
+            else
+               genSoundMsg 0 SoundNone False
+
+        model_=
+                model
+                |> changeSound soundMsg
+                |> playSounds soundMsg elapsed
     in
-        { gameObj | actions = actions_ }
+        {model | soundIndex = model_.soundIndex,sounds = model_.sounds}
+--wait to be solved
+
+
+changeSound : SoundMsg -> Model -> Model
+changeSound soundMsg  model =
+    if soundMsg.cmd == SoundNone then
+        model
+    else
+        { model | soundIndex = soundMsg.index }
+
+playSounds : SoundMsg -> Float -> Model -> Model
+playSounds soundMsg elapsed model =
+    let
+        sound = case (getValue model.sounds model.soundIndex) of
+               Just a ->
+                  a
+               Nothing ->
+                   genSound "" 0
+
+        sound_ =
+            sound
+                |> receiveSoundMsg soundMsg
+                |> doSound elapsed
+
+        sounds_ = replace model.sounds model.soundIndex sound_
+        index_ =
+            if sound_.state == SoundStopped then
+                1
+            else
+                model.soundIndex
+    in
+         {model | sounds = sounds_,soundIndex = index_}
+
+
+
+
 

@@ -4,6 +4,14 @@ type GameState
     | GamePlaying
     | GamePause
 
+type GeometryState
+    = GeoStopped
+    | GeoPlaying
+
 type AnimationState
     = AniStopped
     | AniPlaying
+
+type SoundState
+    = SoundStopped
+    | SoundPlaying

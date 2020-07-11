@@ -1,10 +1,11 @@
 module View exposing (..)
 import Animation exposing (genAnimation)
+import Sound exposing (genSound)
 import GameObject exposing (GameObject)
 import Model exposing (..)
 import BasicFunctions exposing (..)
 import Html exposing (..)
-import Html.Attributes as HtmlAttr
+import Html.Attributes as HtmlAttr exposing (autoplay, controls, loop, src)
 import Svg exposing (..)
 import Svg.Attributes as SvgAttr
 import Html.Attributes
@@ -28,6 +29,7 @@ view model =
         ]
         [
             render model,
+            renderSound model,
             renderInfo model
         ]
 
@@ -41,15 +43,21 @@ render model=
 
     x = String.fromFloat ((wS - wD)/2)
     y = String.fromFloat ((hS - hD)/2)
-    x_ = String.fromFloat 100
-    y_ = String.fromFloat 100
     w = String.fromFloat wD
     h = String.fromFloat hD
     background=model.background
 
+    viewH = 100
+    viewW = 100
+
+    viewX = model.gameObj.geometry.x - viewW / 2
+    viewY = model.gameObj.geometry.y - viewH / 2
+
   in
   Svg.svg
-    [ SvgAttr.viewBox ("350" ++ " " ++ "250" ++ " " ++ "100" ++ " " ++ "100"),
+    [ --SvgAttr.viewBox ("350" ++ " " ++ "250" ++ " " ++ "100" ++ " " ++ "100"),
+      SvgAttr.viewBox (String.fromFloat viewX ++ " " ++ String.fromFloat viewY ++ " " ++
+       String.fromFloat viewW ++ " " ++ String.fromFloat viewH),
       Html.Attributes.style "position" "fixed",
       HtmlAttr.style "left" (x ++ "px"),
       HtmlAttr.style "top" (y ++ "px"),
@@ -72,7 +80,6 @@ renderGameObj gameobj =
         y=geo.y
         w=geo.w
         h=geo.h
-        a=geo.a
 
         aniIndex = gameobj.actIndex
 
@@ -88,7 +95,7 @@ renderGameObj gameobj =
                 Nothing ->
                     ""
 
-        img = genImage src x y w h a
+        img = genImage src x y w h
     in
         renderImage img
 
@@ -129,11 +136,7 @@ renderInfo : Model -> Html msg
 renderInfo model =
     let
         info=
-            case getValue tests 2 of
-                Just string->
-                    string
-                Nothing ->
-                    ""
+            String.fromFloat model.gameObj.geometry.y
 
     in
     div
@@ -148,21 +151,22 @@ renderInfo model =
         , HtmlAttr.style "line-height" "1.5"
         , HtmlAttr.style "padding" "0 15px"
         , HtmlAttr.style "position" "absolute"
-
-
-
         ]
         [
         Html.text info
         ]
 
-
-
-
-
-
-
-
-
-
-
+renderSound : Model -> Html msg
+renderSound model =
+    let
+        sound = case ( getValue model.sounds model.soundIndex) of
+            Just a ->
+                a
+            Nothing ->
+                genSound "" 0
+        src = sound.srcLib
+    in
+      audio [
+      HtmlAttr.src src,
+      HtmlAttr.autoplay True
+      ] [Html.text "You browser does not support audio"]

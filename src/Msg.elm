@@ -11,22 +11,38 @@ type SysMsg
     | MoveRight Bool
     | Noop
 
-type alias GameMsg =
+type alias GameObjMsg =
     {
         geoMsg : GeometryMsg,
-        aniMsg : AnimationMsg
+        aniMsg : AnimationMsg,
+        cmd : ObjCmd
     }
+type ObjCmd
+    = ObjStart
+    | ObjStop
+    | ObjNone
+
+genGameObjMsg : GeometryMsg -> AnimationMsg -> ObjCmd -> GameObjMsg
+genGameObjMsg geoMsg aniMsg cmd=
+    GameObjMsg geoMsg aniMsg cmd
+
 
 type alias GeometryMsg =
     {
-        scale : Float,
         velocity : (Float,Float),
-        rotSpeed : Float
+        length : Float,
+        cmd : GeoCmd
     }
 
-genGeometryMsg : Float -> (Float,Float) -> Float -> GeometryMsg
-genGeometryMsg scale velocity rotSpeed =
-    GeometryMsg scale velocity rotSpeed
+genGeometryMsg : (Float,Float) -> Float  ->GeoCmd -> GeometryMsg
+genGeometryMsg  velocity  length cmd =
+    GeometryMsg velocity  length cmd
+
+
+type GeoCmd
+    = GeoStart
+    | GeoStop
+    | GeoNone
 
 type alias AnimationMsg =
     {
@@ -47,3 +63,20 @@ type AniCmd
 genAniMsg : Int -> AniCmd -> Bool -> AnimationMsg
 genAniMsg index cmd loop =
      AnimationMsg index cmd loop
+
+
+type alias SoundMsg =
+     {
+         index : Int,
+         cmd : SoundCmd,
+         loop : Bool
+     }
+
+type SoundCmd
+    = SoundStart
+    | SoundStop
+    | SoundNone
+
+genSoundMsg: Int -> SoundCmd -> Bool ->SoundMsg
+genSoundMsg index cmd loop =
+     SoundMsg index cmd loop

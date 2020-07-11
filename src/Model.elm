@@ -3,15 +3,19 @@ import Animation exposing (genAnimation)
 import Basics exposing (..)
 import GameObject exposing (GameObject, genGameObj)
 import Geometry exposing (genGeometry)
+import Sound exposing (..)
+
 
 type alias Model =
-    {picture : Image,
+    {
      screen : (Float,Float),
      background : Image,
      gameObj : GameObject,
      passedTime : Float,
      moveLeft : Bool,
-     moveRight : Bool
+     moveRight : Bool,
+     soundIndex: Int,
+     sounds: List Sound
     }
 
 
@@ -30,44 +34,33 @@ genModel =
     let
         screen=(0,0)
         (wD,hD)=display
-        picture=genImage "" 400 300 50 50 180
-        background=genImage "./static/boss_normal.png" (wD/2) (hD/2) wD (hD) 0
-        srcLib_w = [
-                    "./static/walking/1.png",
-                    "./static/walking/2.png",
-                    "./static/walking/3.png",
-                    "./static/walking/4.png"
+
+        background=genImage "./static/boss_normal.png" (wD/2) (hD/2) wD (hD)
+        srcLib_w_L = [
+                    "./static/walking/5.png",
+                    "./static/walking/6.png",
+                    "./static/walking/7.png",
+                    "./static/walking/8.png"
                     ]
-        srcLib = [
-                  "./static/light/252.png",
-                  "./static/light/253.png",
-                  "./static/light/254.png",
-                  "./static/light/255.png",
-                  "./static/light/256.png",
-                  "./static/light/257.png",
-                  "./static/light/258.png",
-                  "./static/light/259.png"
-                  ]
-        srcLib_r = List.reverse srcLib
-        srcLib_dis = [
-                      "./static/disappear/1.png",
-                      "./static/disappear/2.png",
-                      "./static/disappear/3.png",
-                      "./static/disappear/4.png",
-                      "./static/disappear/5.png",
-                      "./static/disappear/6.png",
-                      "./static/disappear/7.png"
-                        ]
-        walking = genAnimation srcLib_w 200
-        magic = genAnimation srcLib 50
-        reverse = genAnimation srcLib_r 200
-        disappear = genAnimation srcLib_dis 100
-        animations = [walking,magic,reverse,disappear]
-        geo = genGeometry 400 300 10 10 0 1 (0,0) 0
+        srcLib_w_R = [
+                     "./static/walking/9.png",
+                     "./static/walking/10.png",
+                     "./static/walking/11.png",
+                     "./static/walking/12.png"
+                     ]
+        normal = genAnimation ["./static/walking/1.png"] 10000
+        walking_Left = genAnimation srcLib_w_L 200
+        walking_Right = genAnimation srcLib_w_R 200
+        animations = [normal,walking_Left,walking_Right]
+        sound_n = genSound "" 10000000
+        sound_1 = genSound "./static/Sound/opengate.mp3" 2000
+        sound_2 = genSound "./static/Sound/heartbeat-fast.mp3" 3000
+        sounds = [sound_n,sound_1, sound_2]
+        geo = genGeometry 400 300 10 10 (0,0)
         gameObj =
             genGameObj geo animations
     in
-    Model picture screen background gameObj 0 False False
+    Model screen background gameObj 0 False False 1 sounds
 
 
 
@@ -80,6 +73,6 @@ type alias Image =
     , theta : Float
     }
 
-genImage : String -> Float -> Float -> Float -> Float -> Float -> Image
-genImage src x y w h theta=
-    Image src x y w h theta
+genImage : String -> Float -> Float -> Float -> Float -> Image
+genImage src x y w h =
+    Image src x y w h 0

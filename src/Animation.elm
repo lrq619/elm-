@@ -1,4 +1,5 @@
 module Animation exposing (..)
+import BasicFunctions exposing (getValue, replace)
 import State exposing (AnimationState(..))
 import Msg exposing (AniCmd(..), AnimationMsg, genAnimationMsg)
 type alias Animation =
@@ -15,16 +16,16 @@ genAnimation srcLib delta =
     Animation AniStopped 1 srcLib 0 delta True
 
 
-receiveAniMsg : Maybe AnimationMsg -> Animation -> Animation
+receiveAniMsg : AnimationMsg -> Animation -> Animation
 receiveAniMsg msg ani =
     let
-        msg_ = case msg of
-            Just m ->
-                m
-            Nothing ->
-                genAnimationMsg 0 AniNone False
+        --msg_ = case msg of
+        --    Just m ->
+        --        m
+        --    Nothing ->
+        --        genAnimationMsg 0 AniNone False
 
-        cmd = msg_.cmd
+        cmd = msg.cmd
 
         state =
             case cmd of
@@ -35,13 +36,15 @@ receiveAniMsg msg ani =
                 AniNone ->
                     ani.state
 
-        loop = msg_.loop
+        loop = msg.loop
     in
-        case msg of
-            Just m ->
-                { ani | state = state, loop = loop }
-            Nothing ->
-                ani
+    if ani.state == AniStopped then
+        if msg.cmd == AniNone then
+            ani
+        else
+           { ani | state = state, loop = loop }
+    else
+        ani
 
 doAnimation : Float -> Animation -> Animation
 doAnimation elapsed ani =
@@ -92,3 +95,4 @@ returnZero ani =
                     (0,AniStopped)
     in
         {ani | passedTime = passedtime_,state=state }
+

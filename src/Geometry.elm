@@ -1,48 +1,84 @@
 module Geometry exposing (..)
-import Msg exposing (GeometryMsg, genGeometryMsg)
+import Msg exposing (GeoCmd(..), GeometryMsg, genGeometryMsg)
+import State exposing (GeometryState(..))
 type alias Geometry =
     {x : Float,
      y : Float,
      w : Float,
      h : Float,
-     a : Float,
-     scale : Float,
+
      v : (Float,Float),
-     av : Float
+
+     passedTime : Float,
+     state : GeometryState,
+     length : Float
     }
 
-genGeometry : Float -> Float -> Float -> Float -> Float -> Float-> (Float,Float)-> Float-> Geometry
-genGeometry x y w h a scale v av=
-    Geometry x y w h a scale v av
+genGeometry : Float  -> Float -> Float -> Float-> (Float,Float)-> Geometry
+genGeometry x y w h v  =
+    Geometry x y w h v  0 GeoStopped 800
 
-receiveGeoMsg : Maybe GeometryMsg -> Geometry -> Geometry
+receiveGeoMsg : GeometryMsg -> Geometry -> Geometry
 receiveGeoMsg msg geo =
     let
-        msg_ =
-            case msg of
-                Just m ->
-                    m
-                Nothing ->
-                    genGeometryMsg 0 (0,0) 0
 
-        scale = msg_.scale
-        v=msg_.velocity
-        av=msg_.rotSpeed
+        v = msg.velocity
+        l = msg.length
 
+        state=
+            case msg.cmd of
+                GeoStart ->
+                    GeoPlaying
+                GeoStop ->
+                    GeoStopped
+                GeoNone ->
+                    geo.state
     in
-        case msg of
-            Just m ->
-                { geo | scale = scale,v=v,av=av }
-            Nothing ->
-                { geo | v=(0,0) }
+        if msg.cmd == GeoNone then
+            geo
+        else
+            { geo | v=v,length = l,state=state }
+
+
 
 doTranslation : Float -> Geometry -> Geometry
 doTranslation elapsed geo =
+    case geo.state of
+        GeoStopped ->
+            geo
+        GeoPlaying ->
+            geo
+                |> addTime elapsed
+                |> move elapsed
+                |> returnZero
+
+addTime : Float -> Geometry -> Geometry
+addTime elapsed geo =
+    let
+        t=geo.passedTime + elapsed
+    in
+        { geo | passedTime = t }
+
+
+move : Float -> Geometry -> Geometry
+move elapsed geo =
     let
         (vx,vy)=geo.v
         (x_,y_)=(geo.x+vx*elapsed,geo.y+vy*elapsed)
-        a_=geo.a + geo.av
-        (w_,h_)=(geo.w*geo.scale,geo.h*geo.scale)
+
     in
-        { geo | x=x_,y=y_,w=w_,h=h_,a=a_ }
+        { geo | x=x_,y=y_ }
+
+returnZero :Geometry -> Geometry
+returnZero geo =
+    let
+        (passedTime,state) =
+                if geo.passedTime <= geo.length then
+                    (geo.passedTime,geo.state)
+                else
+                    (0,GeoStopped)
+    in
+        { geo | passedTime = passedTime,state=state }
+
+
 
