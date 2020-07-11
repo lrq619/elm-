@@ -1,7 +1,7 @@
 module Update exposing (..)
 import Sound exposing (..)
 import BasicFunctions exposing (getValue, replace)
-import GameObject exposing (GameObject, GameObjectState(..), act, addObjTime, calLength, returnObjZero, translate)
+import GameObject exposing (GameObject, GameObjectState(..), act, addObjTime, calLength, changeNormal, returnObjZero, translate)
 import Model exposing (..)
 import Msg exposing (..)
 import Platform.Cmd exposing (..)
@@ -24,7 +24,12 @@ update msg model =
         MoveLeft on->
             ({ model | moveLeft=on }
             ,Cmd.none)
-
+        MoveUp on ->
+            ({ model | moveUp=on }
+            ,Cmd.none)
+        MoveDown on ->
+            ({ model | moveDown=on }
+            ,Cmd.none)
         Tick elapsed->
             (model
                 |> addTotalTime (min elapsed 25)
@@ -60,19 +65,40 @@ gameDisplay elapsed model =
                 (genGeometryMsg (0.01,0) 800 GeoStart)
                 (genAniMsg 3 AniStart False)
                 ObjStart
+            else if model.moveUp then
+                genGameObjMsg
+                (genGeometryMsg (0,-0.01) 800 GeoStart)
+                (genAniMsg 4 AniStart False)
+                ObjStart
+            else if model.moveDown then
+                genGameObjMsg
+                (genGeometryMsg (0,0.01) 800 GeoStart)
+                (genAniMsg 5 AniStart False)
+                ObjStart
             else
                 genGameObjMsg
                 (genGeometryMsg  (0,0) 0 GeoNone)
                 (genAniMsg 0 AniNone False)
                 ObjNone
-
-
+        (normal,changeOrNot) =
+            if model.moveLeft then
+                (["./static/character/normal/2.png"],True)
+            else if model.moveRight then
+                (["./static/character/normal/3.png"],True)
+            else if model.moveUp then
+                (["./static/character/normal/4.png"],True)
+            else if model.moveDown then
+                (["./static/character/normal/1.png"],True)
+            else
+                ([],False)
         gameObj_ =
-               gameObj
+            changeNormal changeOrNot normal gameObj
+        gameObj__ =
+               gameObj_
                     |> receiveObjMsg objMsg
                     |> do elapsed objMsg
     in
-        { model | gameObj = gameObj_ }
+        { model | gameObj = gameObj__ }
 
 receiveObjMsg : GameObjMsg ->  GameObject -> GameObject
 receiveObjMsg msg gameObj =

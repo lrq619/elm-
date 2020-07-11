@@ -9,6 +9,8 @@ type SysMsg
     | Tick Float
     | MoveLeft Bool
     | MoveRight Bool
+    | MoveUp Bool
+    | MoveDown Bool
     | Noop
 
 type alias GameObjMsg =

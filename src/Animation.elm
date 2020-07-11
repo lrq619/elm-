@@ -1,5 +1,5 @@
 module Animation exposing (..)
-import BasicFunctions exposing (getValue, replace)
+import BasicFunctions exposing (replace)
 import State exposing (AnimationState(..))
 import Msg exposing (AniCmd(..), AnimationMsg, genAnimationMsg)
 type alias Animation =
@@ -19,12 +19,6 @@ genAnimation srcLib delta =
 receiveAniMsg : AnimationMsg -> Animation -> Animation
 receiveAniMsg msg ani =
     let
-        --msg_ = case msg of
-        --    Just m ->
-        --        m
-        --    Nothing ->
-        --        genAnimationMsg 0 AniNone False
-
         cmd = msg.cmd
 
         state =
@@ -95,4 +89,6 @@ returnZero ani =
                     (0,AniStopped)
     in
         {ani | passedTime = passedtime_,state=state }
+
+
 

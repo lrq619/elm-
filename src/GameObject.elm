@@ -83,3 +83,14 @@ translate geoMsg elapsed gameObj =
                 |> doTranslation elapsed
     in
         { gameObj | geometry = geo_ }
+
+changeNormal : Bool-> List String -> GameObject -> GameObject
+changeNormal bool srcLib obj =
+    let
+        normal = genAnimation srcLib 100000
+        actions=replace obj.actions 1 normal
+    in
+        if bool then
+            { obj | actions=actions }
+        else
+            obj
