@@ -1,14 +1,17 @@
 module View exposing (..)
 import Animation exposing (genAnimation)
+import NPC exposing (getObj)
 import Sound exposing (genSound)
-import GameObject exposing (GameObject)
+import GameObject exposing (GameObject, getNormal)
 import Model exposing (..)
 import BasicFunctions exposing (..)
 import Html exposing (..)
 import Html.Attributes as HtmlAttr exposing (autoplay, controls, loop, src)
+import State exposing (GameState(..))
 import Svg exposing (..)
 import Svg.Attributes as SvgAttr
 import Html.Attributes
+import Map exposing (trap_1_location)
 
 
 view : Model -> Html.Html msg
@@ -18,6 +21,12 @@ view model =
         (w,h)=model.screen
         w_=String.fromFloat w
         h_=String.fromFloat h
+
+        talk =
+            if model.isTalking then
+                renderTalking model
+            else
+                div [] []
     in
     div
         [
@@ -28,9 +37,15 @@ view model =
         , HtmlAttr.style "top" "0"
         ]
         [
+            img [HtmlAttr.src ("./static/edge.png"),
+                 HtmlAttr.style "position" "absolute",
+                 HtmlAttr.style "left" "300px",
+                 HtmlAttr.style "top" "18px"
+                 ] [],
             render model,
             renderSound model,
-            renderInfo model
+            renderInfo model,
+            talk
         ]
 
 
@@ -53,6 +68,8 @@ render model=
     viewX = model.hero.geometry.x - viewW / 2
     viewY = model.hero.geometry.y - viewH / 2
 
+    npcObjs = List.map getObj model.npcs
+
   in
   Svg.svg
     [ --SvgAttr.viewBox ("350" ++ " " ++ "250" ++ " " ++ "100" ++ " " ++ "100"),
@@ -65,11 +82,13 @@ render model=
       SvgAttr.height (h ++ "px")
     ]
      (
-
      renderImage background
      --::renderImage picture
      ::renderGameObj model.hero
+
      ::[]
+     ++List.map renderGameObj model.traps
+     ++List.map renderGameObj npcObjs
      )
 
 renderGameObj : GameObject -> Svg.Svg msg
@@ -136,9 +155,13 @@ renderInfo : Model -> Html msg
 renderInfo model =
     let
         (x,y) = model.hero.pos
+        blood = model.hero.hero_blood
+
         info=
             --String.fromFloat model.gameObj.geometry.x ++","++ String.fromFloat model.gameObj.geometry.y ++ "\n" ++
-            String.fromInt x ++ "," ++ String.fromInt y
+            String.fromInt x ++ "," ++ String.fromInt y ++ "  Blood: " ++ String.fromFloat blood++" "
+            ++ " "
+
 
     in
     div
@@ -172,3 +195,32 @@ renderSound model =
       HtmlAttr.src src,
       HtmlAttr.autoplay True
       ] [Html.text "You browser does not support audio"]
+
+renderTalking : Model -> Html msg
+renderTalking model =
+    let
+        talk = model.talk
+    in
+    div
+        [ HtmlAttr.style "backgroundImage" "url('./static/talkboard.png')"
+        , HtmlAttr.style "color" "#191a1a"
+        , HtmlAttr.style "font-family" "Helvetica, Arial, sans-serif"
+        , HtmlAttr.style "font-size" "22px"
+        , HtmlAttr.style "width" "740px"
+        , HtmlAttr.style "height" "120px"
+        , HtmlAttr.style "left" "370px"
+        , HtmlAttr.style "top" "550px"
+        , HtmlAttr.style "line-height" "1.5"
+        , HtmlAttr.style "padding" "0 15px"
+        , HtmlAttr.style "position" "absolute"
+        , HtmlAttr.align "center"
+        ]
+        [
+        Html.text talk
+        ]
+
+renderEdge : Html.Html msg
+renderEdge =
+    svg
+        []
+        [renderImage(genImage "./static/edge.png" 100 100 80 100)]

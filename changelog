@@ -1,0 +1,17 @@
+Change Log
+
+[0.1.0] - 2020-07-18
+
+Added:
+* Player's hp system.
+* Implement trap.
+* Player can go into toxic area where their hp will be continuously deducted.
+* Player's conversation with NPC.
+* Pause function.
+* Sound effect when player step into a trap.
+* Sound effect when player talks with NPCs.
+
+Fixed:
+
+* The bug which the trap will vanish while player is not on it.
+* The bug that sound effect will repeat itself while player step into the trap.

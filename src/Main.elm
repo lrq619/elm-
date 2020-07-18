@@ -42,6 +42,10 @@ subscriptions model =
 key : Bool -> Int -> SysMsg
 key on keyCode =
     case keyCode of
+        13 ->
+            Start on
+        27 ->
+            Pause on
         65 ->
             MoveLeft on
         87 ->
@@ -50,6 +54,8 @@ key on keyCode =
             MoveRight on
         83 ->
             MoveDown on
+        75 ->
+            Interact on
 
 
         _ ->

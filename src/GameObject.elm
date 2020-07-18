@@ -1,5 +1,5 @@
 module GameObject exposing (..)
-import Animation exposing (Animation, doAnimation, genAnimation, receiveAniMsg)
+import Animation exposing (Animation, doAnimation, genAnimation, getFirstImage, receiveAniMsg)
 import BasicFunctions exposing (getValue, posToRealPos, replace)
 import Geometry exposing (Geometry, doTranslation, genGeometry, receiveGeoMsg)
 import Map exposing (Map)
@@ -12,17 +12,19 @@ type alias GameObject =
      state : GameObjectState,
      passedTime : Float,
      length : Float,
-     pos :  (Int,Int)
-
+     pos :  (Int,Int),
+     onTrap : Bool,
+     hero_blood : Float
     }
 
 type GameObjectState
     = ObjPlaying
     | ObjStopped
 
+
 genGameObj : Geometry-> List Animation -> GameObject
 genGameObj geo animations =
-    GameObject geo 1 animations ObjStopped 0 0 (0,0)
+    GameObject geo 1 animations ObjStopped 0 0 (0,0) False 100
 
 addObjTime : Float -> GameObject -> GameObject
 addObjTime elapsed obj =
@@ -53,12 +55,17 @@ returnObjZero obj =
             else
                 0
         pos_ = (x+x_,y+y_)
-        obj_ = locate pos_ obj
+        obj_ = locate obj pos_
+        onTrap =
+            --if x_ * y_ /= 0 then
+                False
+            --else
+            --    True
     in
         if obj.passedTime <= obj.length then
             obj
         else
-            { obj_ | passedTime = passedTime,state=state }
+            { obj_ | passedTime = passedTime,state=state,onTrap=onTrap }
 
 calLength : GameObject -> GameObject
 calLength gameObj =
@@ -118,8 +125,8 @@ changeNormal bool srcLib obj =
         else
             obj
 
-locate : (Int,Int) -> GameObject -> GameObject
-locate (xP,yP) gameObj =
+locate : GameObject -> (Int,Int) -> GameObject
+locate gameObj (xP,yP) =
     let
         (x,y) = posToRealPos (xP,yP)
         geo = gameObj.geometry
@@ -134,3 +141,17 @@ checkBarrier map gameObj (vX,vY) =
         (x_,y_) = (x+vX,y+vY)
     in
         List.member (x_,y_) map.barriers
+
+getNormal : GameObject -> String
+getNormal obj =
+    let
+        ani =
+            case getValue obj.actions 1 of
+                Just a ->
+                    a
+                Nothing ->
+                    genAnimation [] 1
+        normal =
+            getFirstImage ani
+    in
+        normal

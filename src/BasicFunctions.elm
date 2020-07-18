@@ -1,6 +1,5 @@
 module BasicFunctions exposing (..)
 
-
 getValue : List a -> Int -> Maybe a
 getValue lst index =
     getValue_ index 1 lst
@@ -22,6 +21,30 @@ getValue_ index indicator lst =
             head
         else
             getValue_ index (indicator + 1) tail
+
+getValueIndex : a -> List a -> Int
+getValueIndex element lst =
+    getValueIndex_ element lst 1
+
+
+
+getValueIndex_ : a -> List a -> Int -> Int
+getValueIndex_ element lst indicator =
+    let
+        head = List.head lst
+        tail =
+             case List.tail lst of
+                    Just t ->
+                        t
+                    Nothing ->
+                        []
+    in
+        if head == Just element then
+            indicator
+        else if tail == [] then
+            0
+        else
+            getValueIndex_ element tail (indicator+1)
 
 replace : List a ->  Int -> a -> List a
 replace lst  index value =
@@ -50,6 +73,7 @@ unitSize =
 posToRealPos : (Int,Int) -> (Float,Float)
 posToRealPos (xP,yP) =
     ((toFloat xP)*unitSize,(toFloat yP)*unitSize)
+
 
 
 

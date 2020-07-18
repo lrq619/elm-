@@ -4,12 +4,15 @@ import BasicFunctions exposing (backgroundSize, posToRealPos, unitSize)
 import Basics exposing (..)
 import GameObject exposing (GameObject, genGameObj, locate)
 import Geometry exposing (genGeometry)
-import Map exposing (Map, genMap)
+import Map exposing (Map, genMap, trap_1_location)
+import NPC exposing (NPC, npcGroup)
 import Sound exposing (..)
+import State exposing (GameState(..))
 
 
 type alias Model =
     {
+     state : GameState,
      screen : (Float,Float),
      background : Image,
      hero : GameObject,
@@ -18,9 +21,18 @@ type alias Model =
      moveRight : Bool,
      moveUp : Bool,
      moveDown : Bool,
+     pause : Bool,
+     start : Bool,
+     interact : Bool,
      soundIndex: Int,
      sounds: List Sound,
-     map : Map
+     map : Map,
+     traps : List GameObject,
+     bufferOnTrap : Bool,
+     npcs : List NPC,
+     isTalking : Bool,
+     talk : String
+
     }
 
 
@@ -34,8 +46,8 @@ genModel =
     let
         screen=(0,0)
         (wD,hD)=(backgroundSize,backgroundSize)
-
         background=genImage "./static/Map005.png" 0 0 wD (hD)
+        ----------------------------------------------------------------------------------------------
         srcLib_w_L = [
                     "./static/character/walking/5.png",
                     "./static/character/walking/6.png",
@@ -66,20 +78,34 @@ genModel =
         walking_Up = genAnimation srcLib_w_U 200
         walking_Down = genAnimation srcLib_w_D 200
         animations = [normal,walking_Left,walking_Right,walking_Up,walking_Down]
+        ------------------------------------------------------------------------------------------
         sound_n = genSound "" 10000000
-        sound_1 = genSound "./static/Sound/opengate.mp3" 2000
-        sound_2 = genSound "./static/Sound/heartbeat-fast.mp3" 3000
-        sounds = [sound_n,sound_1, sound_2]
-        startPoint = (3,10)
+        sound_1 = genSound "./static/sound/opengate.mp3" 2000
+        pause = genSound "./static/sound/Attack1.m4a" 500
+        interact = genSound "./static/sound/Blow2.m4a" 500
+        onTrap = genSound "./static/sound/Reflection.m4a" 500
+        sounds = [sound_n,sound_1,pause,interact,onTrap]
+        ------------------------------------------------------------------------------------------
+        startPoint = (1,1)
         (x,y) = posToRealPos startPoint
         geo = genGeometry x y unitSize unitSize (0,0)
         hero =
-            locate startPoint (genGameObj geo animations)
+            locate (genGameObj geo animations) startPoint
+        ------------------------------------------------------------------------------------------
+        trapimg_1_pause = genAnimation [] 10000
+        trapimg_1_active = genAnimation ["./static/traps/trap.png"] 10000
+        trapimg_1 = [trapimg_1_pause,trapimg_1_active]
+        trap_1 = genGameObj geo trapimg_1
+        traps_1 = List.map (locate trap_1) trap_1_location
+
     in
-    Model screen background hero 0
-    False False False False
+    Model GamePlaying screen background
+    hero 0
+    False False False False False False False
     1 sounds
     genMap
+    traps_1 False
+    npcGroup False ""
 
 
 

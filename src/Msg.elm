@@ -5,6 +5,9 @@ import Browser.Dom exposing (Viewport)
 
 type SysMsg
     = Resize Int Int
+    | Start Bool
+    | Pause Bool
+    | Interact Bool
     | GetViewport Viewport
     | Tick Float
     | MoveLeft Bool

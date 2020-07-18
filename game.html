@@ -5161,18 +5161,37 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$Model$Model = function (screen) {
-	return function (background) {
-		return function (hero) {
-			return function (passedTime) {
-				return function (moveLeft) {
-					return function (moveRight) {
-						return function (moveUp) {
-							return function (moveDown) {
-								return function (soundIndex) {
-									return function (sounds) {
-										return function (map) {
-											return {background: background, hero: hero, map: map, moveDown: moveDown, moveLeft: moveLeft, moveRight: moveRight, moveUp: moveUp, passedTime: passedTime, screen: screen, soundIndex: soundIndex, sounds: sounds};
+var $author$project$State$GamePlaying = {$: 'GamePlaying'};
+var $author$project$Model$Model = function (state) {
+	return function (screen) {
+		return function (background) {
+			return function (hero) {
+				return function (passedTime) {
+					return function (moveLeft) {
+						return function (moveRight) {
+							return function (moveUp) {
+								return function (moveDown) {
+									return function (pause) {
+										return function (start) {
+											return function (interact) {
+												return function (soundIndex) {
+													return function (sounds) {
+														return function (map) {
+															return function (traps) {
+																return function (bufferOnTrap) {
+																	return function (npcs) {
+																		return function (isTalking) {
+																			return function (talk) {
+																				return {background: background, bufferOnTrap: bufferOnTrap, hero: hero, interact: interact, isTalking: isTalking, map: map, moveDown: moveDown, moveLeft: moveLeft, moveRight: moveRight, moveUp: moveUp, npcs: npcs, passedTime: passedTime, pause: pause, screen: screen, soundIndex: soundIndex, sounds: sounds, start: start, state: state, talk: talk, traps: traps};
+																			};
+																		};
+																	};
+																};
+															};
+														};
+													};
+												};
+											};
 										};
 									};
 								};
@@ -5194,14 +5213,14 @@ var $author$project$Animation$genAnimation = F2(
 	function (srcLib, delta) {
 		return A6($author$project$Animation$Animation, $author$project$State$AniStopped, 1, srcLib, 0, delta, true);
 	});
-var $author$project$GameObject$GameObject = F7(
-	function (geometry, actIndex, actions, state, passedTime, length, pos) {
-		return {actIndex: actIndex, actions: actions, geometry: geometry, length: length, passedTime: passedTime, pos: pos, state: state};
+var $author$project$GameObject$GameObject = F9(
+	function (geometry, actIndex, actions, state, passedTime, length, pos, onTrap, hero_blood) {
+		return {actIndex: actIndex, actions: actions, geometry: geometry, hero_blood: hero_blood, length: length, onTrap: onTrap, passedTime: passedTime, pos: pos, state: state};
 	});
 var $author$project$GameObject$ObjStopped = {$: 'ObjStopped'};
 var $author$project$GameObject$genGameObj = F2(
 	function (geo, animations) {
-		return A7(
+		return A9(
 			$author$project$GameObject$GameObject,
 			geo,
 			1,
@@ -5209,7 +5228,9 @@ var $author$project$GameObject$genGameObj = F2(
 			$author$project$GameObject$ObjStopped,
 			0,
 			0,
-			_Utils_Tuple2(0, 0));
+			_Utils_Tuple2(0, 0),
+			false,
+			100);
 	});
 var $author$project$State$GeoStopped = {$: 'GeoStopped'};
 var $author$project$Geometry$Geometry = F8(
@@ -5228,17 +5249,15 @@ var $author$project$Model$genImage = F5(
 	function (src, x, y, w, h) {
 		return A6($author$project$Model$Image, src, x, y, w, h, 0);
 	});
-var $author$project$Map$barriers = _List_fromArray(
-	[
-		_Utils_Tuple2(1, 0)
-	]);
 var $author$project$Map$Map = function (barriers) {
 	return {barriers: barriers};
 };
-var $author$project$Map$setBarrier = function (lst) {
-	return $author$project$Map$Map(lst);
-};
-var $author$project$Map$genMap = $author$project$Map$setBarrier($author$project$Map$barriers);
+var $author$project$Map$barriers = _List_fromArray(
+	[
+		_Utils_Tuple2(1, 2),
+		_Utils_Tuple2(2, 4)
+	]);
+var $author$project$Map$genMap = $author$project$Map$Map($author$project$Map$barriers);
 var $author$project$Sound$Sound = F5(
 	function (state, srcLib, length, loop, passedTime) {
 		return {length: length, loop: loop, passedTime: passedTime, srcLib: srcLib, state: state};
@@ -5256,7 +5275,7 @@ var $author$project$BasicFunctions$posToRealPos = function (_v0) {
 	return _Utils_Tuple2(xP * $author$project$BasicFunctions$unitSize, yP * $author$project$BasicFunctions$unitSize);
 };
 var $author$project$GameObject$locate = F2(
-	function (_v0, gameObj) {
+	function (gameObj, _v0) {
 		var xP = _v0.a;
 		var yP = _v0.b;
 		var geo = gameObj.geometry;
@@ -5274,8 +5293,183 @@ var $author$project$GameObject$locate = F2(
 				pos: _Utils_Tuple2(xP, yP)
 			});
 	});
+var $author$project$NPC$elderPath = 'elder/';
+var $author$project$NPC$NPC = F2(
+	function (obj, talk) {
+		return {obj: obj, talk: talk};
+	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(xs);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$BasicFunctions$getValue_ = F3(
+	function (index, indicator, lst) {
+		getValue_:
+		while (true) {
+			var tail = function () {
+				var _v0 = $elm$core$List$tail(lst);
+				if (_v0.$ === 'Just') {
+					var t = _v0.a;
+					return t;
+				} else {
+					return _List_Nil;
+				}
+			}();
+			var head = $elm$core$List$head(lst);
+			if ((index < 1) || _Utils_eq(lst, _List_Nil)) {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				if (_Utils_eq(index, indicator)) {
+					return head;
+				} else {
+					var $temp$index = index,
+						$temp$indicator = indicator + 1,
+						$temp$lst = tail;
+					index = $temp$index;
+					indicator = $temp$indicator;
+					lst = $temp$lst;
+					continue getValue_;
+				}
+			}
+		}
+	});
+var $author$project$BasicFunctions$getValue = F2(
+	function (lst, index) {
+		return A3($author$project$BasicFunctions$getValue_, index, 1, lst);
+	});
+var $author$project$NPC$genNPC = F3(
+	function (imgs, talk, pos) {
+		var up = function () {
+			var _v3 = A2($author$project$BasicFunctions$getValue, imgs, 4);
+			if (_v3.$ === 'Just') {
+				var i = _v3.a;
+				return i;
+			} else {
+				return '';
+			}
+		}();
+		var right = function () {
+			var _v2 = A2($author$project$BasicFunctions$getValue, imgs, 3);
+			if (_v2.$ === 'Just') {
+				var i = _v2.a;
+				return i;
+			} else {
+				return '';
+			}
+		}();
+		var left = function () {
+			var _v1 = A2($author$project$BasicFunctions$getValue, imgs, 2);
+			if (_v1.$ === 'Just') {
+				var i = _v1.a;
+				return i;
+			} else {
+				return '';
+			}
+		}();
+		var geo = A5(
+			$author$project$Geometry$genGeometry,
+			0,
+			0,
+			$author$project$BasicFunctions$unitSize,
+			$author$project$BasicFunctions$unitSize,
+			_Utils_Tuple2(0, 0));
+		var down = function () {
+			var _v0 = A2($author$project$BasicFunctions$getValue, imgs, 1);
+			if (_v0.$ === 'Just') {
+				var i = _v0.a;
+				return i;
+			} else {
+				return '';
+			}
+		}();
+		var ani_up = A2(
+			$author$project$Animation$genAnimation,
+			_List_fromArray(
+				[up]),
+			1000000);
+		var ani_right = A2(
+			$author$project$Animation$genAnimation,
+			_List_fromArray(
+				[right]),
+			1000000);
+		var ani_left = A2(
+			$author$project$Animation$genAnimation,
+			_List_fromArray(
+				[left]),
+			1000000);
+		var ani_down = A2(
+			$author$project$Animation$genAnimation,
+			_List_fromArray(
+				[down]),
+			1000000);
+		var obj = A2(
+			$author$project$GameObject$locate,
+			A2(
+				$author$project$GameObject$genGameObj,
+				geo,
+				_List_fromArray(
+					[ani_down, ani_left, ani_right, ani_up])),
+			pos);
+		return A2($author$project$NPC$NPC, obj, talk);
+	});
+var $author$project$NPC$path = './static/character/';
+var $author$project$NPC$genSrcLib = function (imgSrc) {
+	return _List_fromArray(
+		[$author$project$NPC$path + (imgSrc + '1.png'), $author$project$NPC$path + (imgSrc + '2.png'), $author$project$NPC$path + (imgSrc + '3.png'), $author$project$NPC$path + (imgSrc + '4.png')]);
+};
+var $author$project$NPC$npcGroup = A2(
+	$elm$core$List$cons,
+	A3(
+		$author$project$NPC$genNPC,
+		$author$project$NPC$genSrcLib($author$project$NPC$elderPath),
+		'Hello!',
+		_Utils_Tuple2(1, 2)),
+	A2(
+		$elm$core$List$cons,
+		A3(
+			$author$project$NPC$genNPC,
+			$author$project$NPC$genSrcLib($author$project$NPC$elderPath),
+			'Have a nice day!',
+			_Utils_Tuple2(2, 4)),
+		A2(
+			$elm$core$List$cons,
+			A3(
+				$author$project$NPC$genNPC,
+				$author$project$NPC$genSrcLib($author$project$NPC$elderPath),
+				'Wow!',
+				_Utils_Tuple2(7, 7)),
+			_List_Nil)));
+var $author$project$Map$trap_1_location = _List_fromArray(
+	[
+		_Utils_Tuple2(2, 6),
+		_Utils_Tuple2(3, 6),
+		_Utils_Tuple2(2, 7),
+		_Utils_Tuple2(3, 7)
+	]);
 var $author$project$Model$genModel = function () {
-	var startPoint = _Utils_Tuple2(3, 10);
+	var trapimg_1_pause = A2($author$project$Animation$genAnimation, _List_Nil, 10000);
+	var trapimg_1_active = A2(
+		$author$project$Animation$genAnimation,
+		_List_fromArray(
+			['./static/traps/trap.png']),
+		10000);
+	var trapimg_1 = _List_fromArray(
+		[trapimg_1_pause, trapimg_1_active]);
+	var startPoint = _Utils_Tuple2(1, 1);
 	var srcLib_w_U = _List_fromArray(
 		['./static/character/walking/13.png', './static/character/walking/14.png', './static/character/walking/15.png', './static/character/walking/16.png']);
 	var walking_Up = A2($author$project$Animation$genAnimation, srcLib_w_U, 200);
@@ -5289,16 +5483,18 @@ var $author$project$Model$genModel = function () {
 		['./static/character/walking/1.png', './static/character/walking/2.png', './static/character/walking/3.png', './static/character/walking/4.png']);
 	var walking_Down = A2($author$project$Animation$genAnimation, srcLib_w_D, 200);
 	var sound_n = A2($author$project$Sound$genSound, '', 10000000);
-	var sound_2 = A2($author$project$Sound$genSound, './static/Sound/heartbeat-fast.mp3', 3000);
-	var sound_1 = A2($author$project$Sound$genSound, './static/Sound/opengate.mp3', 2000);
-	var sounds = _List_fromArray(
-		[sound_n, sound_1, sound_2]);
+	var sound_1 = A2($author$project$Sound$genSound, './static/sound/opengate.mp3', 2000);
 	var screen = _Utils_Tuple2(0, 0);
+	var pause = A2($author$project$Sound$genSound, './static/sound/Attack1.m4a', 500);
+	var onTrap = A2($author$project$Sound$genSound, './static/sound/Reflection.m4a', 500);
 	var normal = A2(
 		$author$project$Animation$genAnimation,
 		_List_fromArray(
 			['./static/character/normal/1.png']),
 		10000);
+	var interact = A2($author$project$Sound$genSound, './static/sound/Blow2.m4a', 500);
+	var sounds = _List_fromArray(
+		[sound_n, sound_1, pause, interact, onTrap]);
 	var animations = _List_fromArray(
 		[normal, walking_Left, walking_Right, walking_Up, walking_Down]);
 	var _v0 = $author$project$BasicFunctions$posToRealPos(startPoint);
@@ -5313,13 +5509,18 @@ var $author$project$Model$genModel = function () {
 		_Utils_Tuple2(0, 0));
 	var hero = A2(
 		$author$project$GameObject$locate,
-		startPoint,
-		A2($author$project$GameObject$genGameObj, geo, animations));
+		A2($author$project$GameObject$genGameObj, geo, animations),
+		startPoint);
+	var trap_1 = A2($author$project$GameObject$genGameObj, geo, trapimg_1);
+	var traps_1 = A2(
+		$elm$core$List$map,
+		$author$project$GameObject$locate(trap_1),
+		$author$project$Map$trap_1_location);
 	var _v1 = _Utils_Tuple2($author$project$BasicFunctions$backgroundSize, $author$project$BasicFunctions$backgroundSize);
 	var wD = _v1.a;
 	var hD = _v1.b;
 	var background = A5($author$project$Model$genImage, './static/Map005.png', 0, 0, wD, hD);
-	return $author$project$Model$Model(screen)(background)(hero)(0)(false)(false)(false)(false)(1)(sounds)($author$project$Map$genMap);
+	return $author$project$Model$Model($author$project$State$GamePlaying)(screen)(background)(hero)(0)(false)(false)(false)(false)(false)(false)(false)(1)(sounds)($author$project$Map$genMap)(traps_1)(false)($author$project$NPC$npcGroup)(false)('');
 }();
 var $elm$browser$Browser$Dom$getViewport = _Browser_withWindow(_Browser_getViewport);
 var $author$project$Msg$Resize = F2(
@@ -5330,6 +5531,9 @@ var $author$project$Msg$Tick = function (a) {
 	return {$: 'Tick', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $author$project$Msg$Interact = function (a) {
+	return {$: 'Interact', a: a};
+};
 var $author$project$Msg$MoveDown = function (a) {
 	return {$: 'MoveDown', a: a};
 };
@@ -5343,9 +5547,19 @@ var $author$project$Msg$MoveUp = function (a) {
 	return {$: 'MoveUp', a: a};
 };
 var $author$project$Msg$Noop = {$: 'Noop'};
+var $author$project$Msg$Pause = function (a) {
+	return {$: 'Pause', a: a};
+};
+var $author$project$Msg$Start = function (a) {
+	return {$: 'Start', a: a};
+};
 var $author$project$Main$key = F2(
 	function (on, keyCode) {
 		switch (keyCode) {
+			case 13:
+				return $author$project$Msg$Start(on);
+			case 27:
+				return $author$project$Msg$Pause(on);
 			case 65:
 				return $author$project$Msg$MoveLeft(on);
 			case 87:
@@ -5354,6 +5568,8 @@ var $author$project$Main$key = F2(
 				return $author$project$Msg$MoveRight(on);
 			case 83:
 				return $author$project$Msg$MoveDown(on);
+			case 75:
+				return $author$project$Msg$Interact(on);
 			default:
 				return $author$project$Msg$Noop;
 		}
@@ -5928,12 +6144,18 @@ var $author$project$Main$subscriptions = function (model) {
 				$elm$browser$Browser$Events$onResize($author$project$Msg$Resize)
 			]));
 };
+var $author$project$State$GamePause = {$: 'GamePause'};
 var $author$project$Update$addTotalTime = F2(
 	function (elapsed, model) {
 		return _Utils_update(
 			model,
 			{passedTime: model.passedTime + elapsed});
 	});
+var $author$project$Update$checkStart = function (model) {
+	return model.start ? _Utils_update(
+		model,
+		{state: $author$project$State$GamePlaying}) : model;
+};
 var $author$project$Msg$AniNone = {$: 'AniNone'};
 var $author$project$Msg$AniStart = {$: 'AniStart'};
 var $author$project$Msg$GeoNone = {$: 'GeoNone'};
@@ -6188,59 +6410,6 @@ var $author$project$Animation$doAnimation = F2(
 					A2($author$project$Animation$addTime, elapsed, ani)));
 		}
 	});
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $elm$core$List$tail = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(xs);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $author$project$BasicFunctions$getValue_ = F3(
-	function (index, indicator, lst) {
-		getValue_:
-		while (true) {
-			var tail = function () {
-				var _v0 = $elm$core$List$tail(lst);
-				if (_v0.$ === 'Just') {
-					var t = _v0.a;
-					return t;
-				} else {
-					return _List_Nil;
-				}
-			}();
-			var head = $elm$core$List$head(lst);
-			if ((index < 1) || _Utils_eq(lst, _List_Nil)) {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				if (_Utils_eq(index, indicator)) {
-					return head;
-				} else {
-					var $temp$index = index,
-						$temp$indicator = indicator + 1,
-						$temp$lst = tail;
-					index = $temp$index;
-					indicator = $temp$indicator;
-					lst = $temp$lst;
-					continue getValue_;
-				}
-			}
-		}
-	});
-var $author$project$BasicFunctions$getValue = F2(
-	function (lst, index) {
-		return A3($author$project$BasicFunctions$getValue_, index, 1, lst);
-	});
 var $author$project$State$AniPlaying = {$: 'AniPlaying'};
 var $author$project$Animation$receiveAniMsg = F2(
 	function (msg, ani) {
@@ -6313,6 +6482,7 @@ var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
 var $author$project$GameObject$returnObjZero = function (obj) {
+	var onTrap = false;
 	var _v0 = obj.pos;
 	var x = _v0.a;
 	var y = _v0.b;
@@ -6322,13 +6492,13 @@ var $author$project$GameObject$returnObjZero = function (obj) {
 	var x_ = (vX > 0) ? 1 : ((vX < 0) ? (-1) : 0);
 	var y_ = (vY > 0) ? 1 : ((vY < 0) ? (-1) : 0);
 	var pos_ = _Utils_Tuple2(x + x_, y + y_);
-	var obj_ = A2($author$project$GameObject$locate, pos_, obj);
+	var obj_ = A2($author$project$GameObject$locate, obj, pos_);
 	var _v2 = _Utils_Tuple2(0, $author$project$GameObject$ObjStopped);
 	var passedTime = _v2.a;
 	var state = _v2.b;
 	return (_Utils_cmp(obj.passedTime, obj.length) < 1) ? obj : _Utils_update(
 		obj_,
-		{passedTime: passedTime, state: state});
+		{onTrap: onTrap, passedTime: passedTime, state: state});
 };
 var $author$project$Geometry$addTime = F2(
 	function (elapsed, geo) {
@@ -6553,22 +6723,168 @@ var $author$project$Update$gameDisplay = F2(
 			true) : _Utils_Tuple2(_List_Nil, false))));
 		var normal = _v0.a;
 		var changeOrNot = _v0.b;
-		var gameObj_ = A3($author$project$GameObject$changeNormal, changeOrNot, normal, hero);
-		var gameObj__ = A3(
+		var hero_ = A3($author$project$GameObject$changeNormal, changeOrNot, normal, hero);
+		var hero__ = A3(
 			$author$project$Update$do,
 			elapsed,
 			objMsg,
-			A2($author$project$Update$receiveObjMsg, objMsg, gameObj_));
+			A2($author$project$Update$receiveObjMsg, objMsg, hero_));
 		return _Utils_update(
 			model,
-			{hero: gameObj__});
+			{hero: hero__});
 	});
+var $elm$core$Basics$ge = _Utils_ge;
+var $author$project$BasicFunctions$getValueIndex_ = F3(
+	function (element, lst, indicator) {
+		getValueIndex_:
+		while (true) {
+			var tail = function () {
+				var _v0 = $elm$core$List$tail(lst);
+				if (_v0.$ === 'Just') {
+					var t = _v0.a;
+					return t;
+				} else {
+					return _List_Nil;
+				}
+			}();
+			var head = $elm$core$List$head(lst);
+			if (_Utils_eq(
+				head,
+				$elm$core$Maybe$Just(element))) {
+				return indicator;
+			} else {
+				if (_Utils_eq(tail, _List_Nil)) {
+					return 0;
+				} else {
+					var $temp$element = element,
+						$temp$lst = tail,
+						$temp$indicator = indicator + 1;
+					element = $temp$element;
+					lst = $temp$lst;
+					indicator = $temp$indicator;
+					continue getValueIndex_;
+				}
+			}
+		}
+	});
+var $author$project$BasicFunctions$getValueIndex = F2(
+	function (element, lst) {
+		return A3($author$project$BasicFunctions$getValueIndex_, element, lst, 1);
+	});
+var $author$project$Update$heroStateCheck = F3(
+	function (elapsed, hero, model) {
+		var traps = model.traps;
+		var hero_position = hero.pos;
+		var trap1_index = A2($author$project$BasicFunctions$getValueIndex, hero_position, $author$project$Map$trap_1_location);
+		var substitute_trap = function () {
+			var _v1 = A2($author$project$BasicFunctions$getValue, model.traps, trap1_index);
+			if (_v1.$ === 'Just') {
+				var a = _v1.a;
+				return a;
+			} else {
+				return model.hero;
+			}
+		}();
+		var substitute_trap_ = _Utils_update(
+			substitute_trap,
+			{actIndex: 2});
+		var new_traps = (!trap1_index) ? traps : A3($author$project$BasicFunctions$replace, traps, trap1_index, substitute_trap_);
+		var _v0 = hero_position;
+		var hero_postion_x = _v0.a;
+		var hero_postion_y = _v0.b;
+		var hero_blood_ = (hero_postion_x >= 16) ? (hero.hero_blood - (0.0005 * elapsed)) : hero.hero_blood;
+		var hero_ = (!trap1_index) ? _Utils_update(
+			hero,
+			{hero_blood: hero_blood_, onTrap: false}) : ((!hero.onTrap) ? _Utils_update(
+			hero,
+			{hero_blood: hero_blood_ - 20, onTrap: true}) : hero);
+		return (!trap1_index) ? _Utils_update(
+			model,
+			{hero: hero_}) : ((!hero.onTrap) ? _Utils_update(
+			model,
+			{hero: hero_, traps: new_traps}) : _Utils_update(
+			model,
+			{hero: hero_, traps: new_traps}));
+	});
+var $author$project$NPC$checkSame = F2(
+	function (pos, npc) {
+		return _Utils_eq(npc.obj.pos, pos);
+	});
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $author$project$Animation$getFirstImage = function (ani) {
+	var _v0 = A2($author$project$BasicFunctions$getValue, ani.srcLib, 1);
+	if (_v0.$ === 'Just') {
+		var i = _v0.a;
+		return i;
+	} else {
+		return '';
+	}
+};
+var $author$project$GameObject$getNormal = function (obj) {
+	var ani = function () {
+		var _v0 = A2($author$project$BasicFunctions$getValue, obj.actions, 1);
+		if (_v0.$ === 'Just') {
+			var a = _v0.a;
+			return a;
+		} else {
+			return A2($author$project$Animation$genAnimation, _List_Nil, 1);
+		}
+	}();
+	var normal = $author$project$Animation$getFirstImage(ani);
+	return normal;
+};
+var $author$project$Update$getTalk = F2(
+	function (hero, npcs) {
+		var _v0 = ($author$project$GameObject$getNormal(hero) === './static/character/normal/1.png') ? _Utils_Tuple2(0, 1) : (($author$project$GameObject$getNormal(hero) === './static/character/normal/2.png') ? _Utils_Tuple2(-1, 0) : (($author$project$GameObject$getNormal(hero) === './static/character/normal/3.png') ? _Utils_Tuple2(1, 0) : (($author$project$GameObject$getNormal(hero) === './static/character/normal/4.png') ? _Utils_Tuple2(0, -1) : _Utils_Tuple2(0, 0))));
+		var x_ = _v0.a;
+		var y_ = _v0.b;
+		var _v1 = hero.pos;
+		var x = _v1.a;
+		var y = _v1.b;
+		var pos_ = _Utils_Tuple2(x + x_, y + y_);
+		var npcSingleList = A2(
+			$elm$core$List$filter,
+			$author$project$NPC$checkSame(pos_),
+			npcs);
+		var talk = function () {
+			var _v2 = A2($author$project$BasicFunctions$getValue, npcSingleList, 1);
+			if (_v2.$ === 'Just') {
+				var n = _v2.a;
+				return n.talk;
+			} else {
+				return '';
+			}
+		}();
+		return talk;
+	});
+var $author$project$Update$interact = function (model) {
+	var talk = A2($author$project$Update$getTalk, model.hero, model.npcs);
+	return (!model.interact) ? model : ((talk !== '') ? _Utils_update(
+		model,
+		{isTalking: true, talk: talk}) : model);
+};
 var $elm$core$Basics$min = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $author$project$Update$recordBuffer = function (model) {
+	var onTrap = model.hero.onTrap;
+	return _Utils_update(
+		model,
+		{bufferOnTrap: onTrap});
+};
 var $author$project$Msg$SoundNone = {$: 'SoundNone'};
 var $author$project$Msg$SoundStart = {$: 'SoundStart'};
 var $author$project$Update$changeSound = F2(
@@ -6652,7 +6968,7 @@ var $author$project$Update$playSounds = F3(
 	});
 var $author$project$Update$soundDisplay = F2(
 	function (elapsed, model) {
-		var soundMsg = model.moveLeft ? A3($author$project$Msg$genSoundMsg, 2, $author$project$Msg$SoundStart, true) : A3($author$project$Msg$genSoundMsg, 0, $author$project$Msg$SoundNone, false);
+		var soundMsg = _Utils_eq(model.state, $author$project$State$GamePause) ? ((model.pause || model.start) ? A3($author$project$Msg$genSoundMsg, 3, $author$project$Msg$SoundStart, true) : A3($author$project$Msg$genSoundMsg, 0, $author$project$Msg$SoundNone, false)) : ((model.pause || model.start) ? A3($author$project$Msg$genSoundMsg, 3, $author$project$Msg$SoundStart, true) : ((model.interact && model.isTalking) ? A3($author$project$Msg$genSoundMsg, 4, $author$project$Msg$SoundStart, true) : ((model.hero.onTrap && (!model.bufferOnTrap)) ? A3($author$project$Msg$genSoundMsg, 5, $author$project$Msg$SoundStart, true) : A3($author$project$Msg$genSoundMsg, 0, $author$project$Msg$SoundNone, false))));
 		var model_ = A3(
 			$author$project$Update$playSounds,
 			soundMsg,
@@ -6665,6 +6981,20 @@ var $author$project$Update$soundDisplay = F2(
 var $author$project$Update$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
+			case 'Pause':
+				var on = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{pause: on, state: $author$project$State$GamePause}),
+					$elm$core$Platform$Cmd$none);
+			case 'Start':
+				var on = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{isTalking: false, start: on, state: $author$project$State$GamePlaying}),
+					$elm$core$Platform$Cmd$none);
 			case 'GetViewport':
 				var viewport = msg.a;
 				return _Utils_Tuple2(
@@ -6684,55 +7014,80 @@ var $author$project$Update$update = F2(
 							screen: _Utils_Tuple2(width, height)
 						}),
 					$elm$core$Platform$Cmd$none);
+			case 'Interact':
+				var on = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{interact: on}),
+					$elm$core$Platform$Cmd$none);
 			case 'MoveRight':
 				var on = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{moveRight: on}),
+						{isTalking: false, moveRight: on}),
 					$elm$core$Platform$Cmd$none);
 			case 'MoveLeft':
 				var on = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{moveLeft: on}),
+						{isTalking: false, moveLeft: on}),
 					$elm$core$Platform$Cmd$none);
 			case 'MoveUp':
 				var on = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{moveUp: on}),
+						{isTalking: false, moveUp: on}),
 					$elm$core$Platform$Cmd$none);
 			case 'MoveDown':
 				var on = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{moveDown: on}),
+						{isTalking: false, moveDown: on}),
 					$elm$core$Platform$Cmd$none);
 			case 'Tick':
 				var elapsed = msg.a;
-				return _Utils_Tuple2(
+				return _Utils_eq(model.state, $author$project$State$GamePlaying) ? _Utils_Tuple2(
+					$author$project$Update$interact(
+						A2(
+							$author$project$Update$soundDisplay,
+							A2($elm$core$Basics$min, elapsed, 25),
+							A2(
+								$author$project$Update$gameDisplay,
+								A2($elm$core$Basics$min, elapsed, 25),
+								A2(
+									$author$project$Update$addTotalTime,
+									A2($elm$core$Basics$min, elapsed, 25),
+									A3(
+										$author$project$Update$heroStateCheck,
+										A2($elm$core$Basics$min, elapsed, 25),
+										model.hero,
+										$author$project$Update$recordBuffer(model)))))),
+					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 					A2(
 						$author$project$Update$soundDisplay,
 						A2($elm$core$Basics$min, elapsed, 25),
-						A2(
-							$author$project$Update$gameDisplay,
-							A2($elm$core$Basics$min, elapsed, 25),
-							A2(
-								$author$project$Update$addTotalTime,
-								A2($elm$core$Basics$min, elapsed, 25),
-								model))),
+						$author$project$Update$checkStart(model)),
 					$elm$core$Platform$Cmd$none);
 			default:
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{isTalking: false}),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$core$String$fromFloat = _String_fromNumber;
+var $elm$html$Html$img = _VirtualDom_node('img');
 var $author$project$BasicFunctions$display = _Utils_Tuple2(800, 600);
+var $author$project$NPC$getObj = function (npc) {
+	return npc.obj;
+};
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$image = $elm$svg$Svg$trustedNode('image');
@@ -6817,6 +7172,7 @@ var $author$project$View$render = function (model) {
 	var viewX = model.hero.geometry.x - (viewW / 2);
 	var viewH = 200;
 	var viewY = model.hero.geometry.y - (viewH / 2);
+	var npcObjs = A2($elm$core$List$map, $author$project$NPC$getObj, model.npcs);
 	var background = model.background;
 	var _v0 = model.screen;
 	var wS = _v0.a;
@@ -6846,15 +7202,20 @@ var $author$project$View$render = function (model) {
 			A2(
 				$elm$core$List$cons,
 				$author$project$View$renderGameObj(model.hero),
-				_List_Nil)));
+				_Utils_ap(
+					_List_Nil,
+					_Utils_ap(
+						A2($elm$core$List$map, $author$project$View$renderGameObj, model.traps),
+						A2($elm$core$List$map, $author$project$View$renderGameObj, npcObjs))))));
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$View$renderInfo = function (model) {
+	var blood = model.hero.hero_blood;
 	var _v0 = model.hero.pos;
 	var x = _v0.a;
 	var y = _v0.b;
-	var info = $elm$core$String$fromInt(x) + (',' + $elm$core$String$fromInt(y));
+	var info = $elm$core$String$fromInt(x) + (',' + ($elm$core$String$fromInt(y) + ('  Blood: ' + ($elm$core$String$fromFloat(blood) + (' ' + ' ')))));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -6923,7 +7284,33 @@ var $author$project$View$renderSound = function (model) {
 				$elm$html$Html$text('You browser does not support audio')
 			]));
 };
+var $elm$html$Html$Attributes$align = $elm$html$Html$Attributes$stringProperty('align');
+var $author$project$View$renderTalking = function (model) {
+	var talk = model.talk;
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'backgroundImage', 'url(\'./static/talkboard.png\')'),
+				A2($elm$html$Html$Attributes$style, 'color', '#191a1a'),
+				A2($elm$html$Html$Attributes$style, 'font-family', 'Helvetica, Arial, sans-serif'),
+				A2($elm$html$Html$Attributes$style, 'font-size', '22px'),
+				A2($elm$html$Html$Attributes$style, 'width', '740px'),
+				A2($elm$html$Html$Attributes$style, 'height', '120px'),
+				A2($elm$html$Html$Attributes$style, 'left', '370px'),
+				A2($elm$html$Html$Attributes$style, 'top', '550px'),
+				A2($elm$html$Html$Attributes$style, 'line-height', '1.5'),
+				A2($elm$html$Html$Attributes$style, 'padding', '0 15px'),
+				A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+				$elm$html$Html$Attributes$align('center')
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text(talk)
+			]));
+};
 var $author$project$View$view = function (model) {
+	var talk = model.isTalking ? $author$project$View$renderTalking(model) : A2($elm$html$Html$div, _List_Nil, _List_Nil);
 	var _v0 = model.screen;
 	var w = _v0.a;
 	var h = _v0.b;
@@ -6941,9 +7328,20 @@ var $author$project$View$view = function (model) {
 			]),
 		_List_fromArray(
 			[
+				A2(
+				$elm$html$Html$img,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$src('./static/edge.png'),
+						A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+						A2($elm$html$Html$Attributes$style, 'left', '300px'),
+						A2($elm$html$Html$Attributes$style, 'top', '18px')
+					]),
+				_List_Nil),
 				$author$project$View$render(model),
 				$author$project$View$renderSound(model),
-				$author$project$View$renderInfo(model)
+				$author$project$View$renderInfo(model),
+				talk
 			]));
 };
 var $author$project$Main$main = function () {

@@ -1,5 +1,5 @@
 module Animation exposing (..)
-import BasicFunctions exposing (replace)
+import BasicFunctions exposing (getValue, replace)
 import State exposing (AnimationState(..))
 import Msg exposing (AniCmd(..), AnimationMsg, genAnimationMsg)
 type alias Animation =
@@ -89,6 +89,16 @@ returnZero ani =
                     (0,AniStopped)
     in
         {ani | passedTime = passedtime_,state=state }
+
+getFirstImage : Animation -> String
+getFirstImage ani =
+    case getValue ani.srcLib 1 of
+        Just i ->
+            i
+        Nothing ->
+            ""
+
+
 
 
 
